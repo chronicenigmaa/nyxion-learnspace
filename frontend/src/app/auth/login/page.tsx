@@ -37,12 +37,12 @@ export default function LoginPage() {
       localStorage.setItem('ls_token', access_token)
       localStorage.setItem('ls_user', JSON.stringify({ id: user_id, name, role, email }))
 
-      const routes: Record<string, string> = {
-        student: '/dashboard/student',
-        teacher: '/dashboard/teacher',
-        school_admin: '/dashboard/admin',
-        super_admin: '/dashboard/admin',
-      }
+    const routes: Record<string, string> = {
+      student: '/dashboard',
+      teacher: '/dashboard',
+      school_admin: '/dashboard',
+      super_admin: '/dashboard',
+    }
       toast.success(`Welcome back, ${name}!`)
       router.push(routes[role] || '/dashboard/student')
     } catch (err: any) {
