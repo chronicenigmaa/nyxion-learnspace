@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.v1.endpoints import auth, assignments, submissions, grades, attendance, exams, notes, users
+from app.api.v1.endpoints import auth, assignments, submissions, grades, attendance, exams, notes, users, events, seed
 from app.db.database import engine, Base
 
 Base.metadata.create_all(bind=engine)
@@ -19,14 +19,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(auth.router, prefix="/api/v1/auth", tags=["auth"])
-app.include_router(users.router, prefix="/api/v1/users", tags=["users"])
+app.include_router(auth.router,        prefix="/api/v1/auth",        tags=["auth"])
+app.include_router(users.router,       prefix="/api/v1/users",       tags=["users"])
 app.include_router(assignments.router, prefix="/api/v1/assignments", tags=["assignments"])
 app.include_router(submissions.router, prefix="/api/v1/submissions", tags=["submissions"])
-app.include_router(grades.router, prefix="/api/v1/grades", tags=["grades"])
-app.include_router(attendance.router, prefix="/api/v1/attendance", tags=["attendance"])
-app.include_router(exams.router, prefix="/api/v1/exams", tags=["exams"])
-app.include_router(notes.router, prefix="/api/v1/notes", tags=["notes"])
+app.include_router(grades.router,      prefix="/api/v1/grades",      tags=["grades"])
+app.include_router(attendance.router,  prefix="/api/v1/attendance",  tags=["attendance"])
+app.include_router(exams.router,       prefix="/api/v1/exams",       tags=["exams"])
+app.include_router(notes.router,       prefix="/api/v1/notes",       tags=["notes"])
+app.include_router(events.router,      prefix="/api/v1/events",      tags=["events"])
+app.include_router(seed.router,        prefix="/api/v1/auth",        tags=["seed"])
 
 @app.get("/health")
 def health():

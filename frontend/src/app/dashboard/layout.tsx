@@ -20,7 +20,8 @@ const NAV: NavItem[] = [
   { label: 'Attendance', href: '/dashboard/attendance', icon: Calendar, roles: ['teacher', 'school_admin'] },
   { label: 'My Attendance', href: '/dashboard/attendance/my', icon: Calendar, roles: ['student'] },
   { label: 'Grades', href: '/dashboard/grades', icon: BarChart2, roles: ['student', 'teacher', 'school_admin'] },
-  { label: 'Students', href: '/dashboard/sftudents', icon: Users, roles: ['teacher', 'school_admin', 'super_admin'] },
+  { label: 'Calendar', href: '/dashboard/calendar', icon: Calendar, roles: ['student', 'teacher', 'school_admin', 'super_admin'] },
+  { label: 'Students', href: '/dashboard/students', icon: Users, roles: ['teacher', 'school_admin', 'super_admin'] },
 ]
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -76,23 +77,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <div className="text-xs text-slate-500 capitalize">{user.role?.replace('_', ' ')}</div>
           </div>
         </div>
-<button
-  onClick={async () => {
-    const token = localStorage.getItem('eduos_token') // check what key EduOS uses
-    const res = await fetch('/api/v1/auth/sso-token', {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-    const data = await res.json()
-    window.open(
-      `https://nyxion-learnspace.vercel.app/auth/sso?token=${data.token}`,
-      '_blank'
-    )
-  }}
-  className="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-400 hover:text-indigo-400 hover:bg-indigo-400/10 text-sm w-full transition-all">
-  <BookOpen size={14} />
-  LearnSpace
-</button>
-
         <button onClick={logout}
           className="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-400/10 text-sm w-full transition-all">
           <LogOut size={14} />

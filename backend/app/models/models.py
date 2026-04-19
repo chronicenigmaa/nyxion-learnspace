@@ -161,3 +161,17 @@ class Note(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     teacher = relationship("User")
+
+
+class Event(Base):
+    __tablename__ = "events"
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    title = Column(String, nullable=False)
+    description = Column(Text, nullable=True)
+    event_type = Column(String, default="event")  # holiday, exam, event, announcement, deadline
+    date = Column(String, nullable=False)   # YYYY-MM-DD
+    end_date = Column(String, nullable=True)
+    color = Column(String, default="#6366f1")
+    all_day = Column(Boolean, default=True)
+    created_by = Column(UUID(as_uuid=True), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
