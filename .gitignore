@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.env
+venv/
+.venv/
+*.egg-info/
+
+# Node
+node_modules/
+.next/
+.vercel/
+out/
+dist/
+*.local
+
+# Env files
+.env
+.env.local
+.env.production
+.env.development
+
+# Uploads (never commit real files)
+/backend/uploads/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
