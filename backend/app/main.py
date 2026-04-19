@@ -28,7 +28,7 @@ app.include_router(attendance.router,  prefix="/api/v1/attendance",  tags=["atte
 app.include_router(exams.router,       prefix="/api/v1/exams",       tags=["exams"])
 app.include_router(notes.router,       prefix="/api/v1/notes",       tags=["notes"])
 app.include_router(events.router,      prefix="/api/v1/events",      tags=["events"])
-app.include_router(seed.router,        prefix="/api/v1/auth",        tags=["seed"])
+app.include_router(seed.router,        prefix="/api/v1/seed",        tags=["seed"])
 
 @app.get("/health")
 def health():

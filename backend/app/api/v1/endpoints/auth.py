@@ -88,28 +88,3 @@ def me(current_user: User = Depends(get_current_user)):
         "roll_number": current_user.roll_number,
         "avatar_color": current_user.avatar_color,
     }
-
-
-@router.post("/seed-demo")
-def seed_demo(db: Session = Depends(get_db)):
-    """Creates demo accounts for testing"""
-    demo_users = [
-        {"name": "Ms. Fatima Malik", "email": "teacher@demo.com", "password": "demo123", "role": "teacher", "subject": "Mathematics"},
-        {"name": "Ahmed Khan", "email": "student@demo.com", "password": "demo123", "role": "student", "class_name": "Class 9A", "roll_number": "09A-001"},
-        {"name": "Admin User", "email": "admin@demo.com", "password": "demo123", "role": "school_admin"},
-    ]
-    created = []
-    for u in demo_users:
-        if not db.query(User).filter(User.email == u["email"]).first():
-            user = User(
-                name=u["name"], email=u["email"],
-                password_hash=hash_password(u["password"]),
-                role=Role(u["role"]),
-                subject=u.get("subject"),
-                class_name=u.get("class_name"),
-                roll_number=u.get("roll_number"),
-            )
-            db.add(user)
-            created.append(u["email"])
-    db.commit()
-    return {"created": created, "message": "Demo accounts ready"}
