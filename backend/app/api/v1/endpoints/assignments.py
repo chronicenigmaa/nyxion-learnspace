@@ -84,6 +84,11 @@ def create_assignment(
     if current_user.role not in [Role.teacher, Role.school_admin, Role.super_admin]:
         raise HTTPException(status_code=403, detail="Only teachers can create assignments")
 
+    try:
+        parsed_due_date = datetime.fromisoformat(due_date.replace("Z", "+00:00"))
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid due date format")
+
     saved_files = []
     for file in files:
         if file.filename:
@@ -100,7 +105,7 @@ def create_assignment(
         subject=subject,
         class_name=class_name,
         teacher_id=current_user.id,
-        due_date=datetime.fromisoformat(due_date.replace("Z", "+00:00")),
+        due_date=parsed_due_date,
         max_marks=max_marks,
         allow_late=allow_late,
         attachments=saved_files,

@@ -41,7 +41,7 @@ export const getMe = () => api.get('/api/v1/auth/me')
 export const getAssignments = () => api.get('/api/v1/assignments/')
 export const getAssignment = (id: string) => api.get(`/api/v1/assignments/${id}`)
 export const createAssignment = (data: FormData) =>
-  api.post('/api/v1/assignments/', data, { headers: { 'Content-Type': 'multipart/form-data' } })
+  api.post('/api/v1/assignments/', data)
 export const updateAssignmentStatus = (id: string, status: string) =>
   api.patch(`/api/v1/assignments/${id}/status?status=${status}`)
 export const deleteAssignment = (id: string) => api.delete(`/api/v1/assignments/${id}`)

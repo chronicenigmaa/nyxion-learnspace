@@ -35,7 +35,7 @@ export default function CreateAssignmentPage() {
     setLoading(true)
     try {
       const data = new FormData()
-      const dueDateTime = `${form.due_date}T${form.due_time}`
+      const dueDateTime = `${form.due_date}T${form.due_time}:00`
       Object.entries(form).forEach(([k, v]) => {
         if (k === 'due_time') return
         if (k === 'due_date') {
