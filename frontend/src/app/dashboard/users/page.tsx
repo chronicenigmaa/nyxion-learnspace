@@ -23,6 +23,7 @@ type Student = {
   name: string
   email: string
   class_name?: string
+  section?: string
   roll_number?: string
 }
 
@@ -34,7 +35,9 @@ export default function UsersPage() {
   const user = getUser()
   const isAdmin = user?.role === 'school_admin' || user?.role === 'super_admin'
   const studentsByClass = students.reduce<Record<string, Student[]>>((acc, student) => {
-    const key = student.class_name || 'Unassigned'
+    const key = student.class_name
+      ? `${student.class_name}${student.section ? `-${student.section}` : ''}`
+      : 'Unassigned'
     if (!acc[key]) acc[key] = []
     acc[key].push(student)
     return acc
@@ -157,13 +160,14 @@ export default function UsersPage() {
                 <th className="pb-3 font-medium">Email</th>
                 <th className="pb-3 font-medium">Role</th>
                 <th className="pb-3 font-medium">Class</th>
+                <th className="pb-3 font-medium">Section</th>
                 <th className="pb-3 font-medium">Roll No.</th>
               </tr>
             </thead>
             <tbody>
               {!loading && students.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="py-4 text-slate-500">No students found.</td>
+                  <td colSpan={6} className="py-4 text-slate-500">No students found.</td>
                 </tr>
               )}
               {students.map((student) => (
@@ -172,6 +176,7 @@ export default function UsersPage() {
                   <td className="py-3">{student.email}</td>
                   <td className="py-3">Student</td>
                   <td className="py-3">{student.class_name || '-'}</td>
+                  <td className="py-3">{student.section || '-'}</td>
                   <td className="py-3">{student.roll_number || '-'}</td>
                 </tr>
               ))}
@@ -203,7 +208,7 @@ export default function UsersPage() {
                   <div key={student.id} className="rounded-lg px-3 py-2" style={{ background: 'var(--surface-900)' }}>
                     <div className="text-sm font-medium text-slate-100">{student.name}</div>
                     <div className="text-xs text-slate-400">
-                      {student.roll_number || 'No roll number'}
+                      {student.section ? `Section ${student.section}` : 'No section'} · {student.roll_number || 'No roll number'}
                     </div>
                   </div>
                 ))}
