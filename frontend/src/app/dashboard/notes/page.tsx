@@ -5,6 +5,9 @@ import toast from 'react-hot-toast'
 import { BookOpen, Upload, Trash2, Download, FileText, Plus, X } from 'lucide-react'
 import { format } from 'date-fns'
 
+const SUBJECT_OPTIONS = ['Mathematics', 'Physics', 'English', 'Chemistry', 'Biology', 'Science']
+const CLASS_OPTIONS = ['Class 8A', 'Class 8B', 'Class 9A', 'Class 9B', 'Class 10A', 'Class 10B']
+
 export default function NotesPage() {
   const [user, setUser] = useState<any>(null)
   const [notes, setNotes] = useState<any[]>([])
@@ -93,13 +96,23 @@ export default function NotesPage() {
               </div>
               <div>
                 <label className="label">Subject *</label>
-                <input className="input" placeholder="Physics" value={form.subject} onChange={e => setForm(p => ({ ...p, subject: e.target.value }))} required />
+                <select className="input" value={form.subject} onChange={e => setForm(p => ({ ...p, subject: e.target.value }))} required>
+                  <option value="">Select subject</option>
+                  {SUBJECT_OPTIONS.map(subject => (
+                    <option key={subject} value={subject}>{subject}</option>
+                  ))}
+                </select>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="label">Class *</label>
-                <input className="input" placeholder="Class 10B" value={form.class_name} onChange={e => setForm(p => ({ ...p, class_name: e.target.value }))} required />
+                <select className="input" value={form.class_name} onChange={e => setForm(p => ({ ...p, class_name: e.target.value }))} required>
+                  <option value="">Select class</option>
+                  {CLASS_OPTIONS.map(className => (
+                    <option key={className} value={className}>{className}</option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label className="label">Description</label>
