@@ -94,21 +94,38 @@ def fetch_eduos_students(token: str, class_name: str | None = None):
 def fetch_eduos_teachers(token: str):
     data = fetch_eduos_json("/api/v1/teachers/", token)
     sections = fetch_eduos_json("/api/v1/academics/sections", token)
-    if data is None or sections is None:
+    subjects = fetch_eduos_json("/api/v1/academics/subjects", token)
+    if data is None or sections is None or subjects is None:
         return None
 
     teachers = []
     for teacher in data:
         teacher_id = str(teacher.get("id"))
-        assigned_sections = [
-            {
-                "id": str(section.get("id")),
-                "class_name": section.get("class_name"),
-                "section": section.get("section") or "",
-            }
-            for section in sections
-            if str(section.get("class_teacher_id") or "") == teacher_id
-        ]
+        pair_map: dict[tuple[str, str], dict] = {}
+        for section in sections:
+            if str(section.get("class_teacher_id") or "") == teacher_id:
+                class_name = section.get("class_name")
+                section_name = section.get("section") or ""
+                if class_name:
+                    pair_map[(class_name, section_name)] = {
+                        "id": str(section.get("id")),
+                        "class_name": class_name,
+                        "section": section_name,
+                    }
+        for subject in subjects:
+            if str(subject.get("teacher_id") or "") == teacher_id:
+                class_name = subject.get("class_name")
+                section_name = subject.get("section") or ""
+                if class_name:
+                    pair_map.setdefault(
+                        (class_name, section_name),
+                        {
+                            "id": f"subject-{subject.get('id')}",
+                            "class_name": class_name,
+                            "section": section_name,
+                        },
+                    )
+        assigned_sections = list(pair_map.values())
         teachers.append({
             "id": teacher_id,
             "name": teacher.get("full_name") or teacher.get("name"),
@@ -123,22 +140,39 @@ def fetch_eduos_teacher_detail(token: str, teacher_id: str):
     teachers = fetch_eduos_teachers(token)
     students = fetch_eduos_students(token)
     sections = fetch_eduos_json("/api/v1/academics/sections", token)
-    if teachers is None or students is None or sections is None:
+    subjects = fetch_eduos_json("/api/v1/academics/subjects", token)
+    if teachers is None or students is None or sections is None or subjects is None:
         return None
 
     teacher = next((t for t in teachers if t["id"] == teacher_id), None)
     if not teacher:
         raise HTTPException(status_code=404, detail="Teacher not found")
 
-    assigned_sections = [
-        {
-            "id": str(section.get("id")),
-            "class_name": section.get("class_name"),
-            "section": section.get("section") or "",
-        }
-        for section in sections
-        if str(section.get("class_teacher_id") or "") == teacher_id
-    ]
+    pair_map: dict[tuple[str, str], dict] = {}
+    for section in sections:
+        if str(section.get("class_teacher_id") or "") == teacher_id:
+            class_name = section.get("class_name")
+            section_name = section.get("section") or ""
+            if class_name:
+                pair_map[(class_name, section_name)] = {
+                    "id": str(section.get("id")),
+                    "class_name": class_name,
+                    "section": section_name,
+                }
+    for subject in subjects:
+        if str(subject.get("teacher_id") or "") == teacher_id:
+            class_name = subject.get("class_name")
+            section_name = subject.get("section") or ""
+            if class_name:
+                pair_map.setdefault(
+                    (class_name, section_name),
+                    {
+                        "id": f"subject-{subject.get('id')}",
+                        "class_name": class_name,
+                        "section": section_name,
+                    },
+                )
+    assigned_sections = list(pair_map.values())
 
     assigned_students = []
     seen_student_ids = set()
