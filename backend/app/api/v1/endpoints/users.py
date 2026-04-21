@@ -13,21 +13,21 @@ from jose import jwt
 router = APIRouter()
 
 
-def build_eduos_token(token: str):
+def extract_eduos_context(token: str):
     eduos_api_url = os.getenv("EDUOS_API_URL", "").rstrip("/")
     if not eduos_api_url:
-        return None
+        return None, None
 
     try:
         payload = decode_access_token(token)
     except Exception:
-        return None
+        return None, None
 
     eduos_sub = payload.get("eduos_sub")
     if not eduos_sub:
-        return None
+        return payload, None
 
-    return jwt.encode(
+    eduos_token = jwt.encode(
         {
             "sub": eduos_sub,
             "school_id": payload.get("school_id"),
@@ -37,23 +37,42 @@ def build_eduos_token(token: str):
         SECRET_KEY,
         algorithm=ALGORITHM,
     )
+    return payload, eduos_token
 
 
-def fetch_eduos_students(token: str, class_name: str | None = None):
+def build_eduos_token(token: str):
+    _, eduos_token = extract_eduos_context(token)
+    return eduos_token
+
+
+def should_require_eduos_data(token: str) -> bool:
+    payload, eduos_token = extract_eduos_context(token)
+    return bool(payload and eduos_token)
+
+
+def fetch_eduos_json(path: str, token: str):
     eduos_api_url = os.getenv("EDUOS_API_URL", "").rstrip("/")
     eduos_token = build_eduos_token(token)
     if not eduos_api_url or not eduos_token:
         return None
 
     req = urllib_request.Request(
-        f"{eduos_api_url}/api/v1/students/",
+        f"{eduos_api_url}{path}",
         headers={"Authorization": f"Bearer {eduos_token}"},
         method="GET",
     )
     try:
         with urllib_request.urlopen(req, timeout=10) as res:
-            data = json.loads(res.read().decode("utf-8"))
-    except (error.HTTPError, error.URLError, TimeoutError, json.JSONDecodeError):
+            return json.loads(res.read().decode("utf-8"))
+    except error.HTTPError as exc:
+        raise HTTPException(status_code=502, detail=f"EduOS sync failed with status {exc.code}")
+    except (error.URLError, TimeoutError, json.JSONDecodeError):
+        raise HTTPException(status_code=502, detail="EduOS sync failed")
+
+
+def fetch_eduos_students(token: str, class_name: str | None = None):
+    data = fetch_eduos_json("/api/v1/students/", token)
+    if data is None:
         return None
 
     students = []
@@ -72,20 +91,8 @@ def fetch_eduos_students(token: str, class_name: str | None = None):
 
 
 def fetch_eduos_teachers(token: str):
-    eduos_api_url = os.getenv("EDUOS_API_URL", "").rstrip("/")
-    eduos_token = build_eduos_token(token)
-    if not eduos_api_url or not eduos_token:
-        return None
-
-    req = urllib_request.Request(
-        f"{eduos_api_url}/api/v1/teachers/",
-        headers={"Authorization": f"Bearer {eduos_token}"},
-        method="GET",
-    )
-    try:
-        with urllib_request.urlopen(req, timeout=10) as res:
-            data = json.loads(res.read().decode("utf-8"))
-    except (error.HTTPError, error.URLError, TimeoutError, json.JSONDecodeError):
+    data = fetch_eduos_json("/api/v1/teachers/", token)
+    if data is None:
         return None
 
     teachers = []
@@ -108,6 +115,8 @@ def list_students(
 ):
     if current_user.role not in [Role.teacher, Role.school_admin, Role.super_admin]:
         raise HTTPException(status_code=403)
+    if should_require_eduos_data(token):
+        return fetch_eduos_students(token, class_name)
     eduos_students = fetch_eduos_students(token, class_name)
     if eduos_students is not None:
         return eduos_students
@@ -126,6 +135,8 @@ def list_teachers(
 ):
     if current_user.role not in [Role.school_admin, Role.super_admin]:
         raise HTTPException(status_code=403)
+    if should_require_eduos_data(token):
+        return fetch_eduos_teachers(token)
     eduos_teachers = fetch_eduos_teachers(token)
     if eduos_teachers is not None:
         return eduos_teachers
