@@ -17,7 +17,7 @@ const PORTALS = [
 const EMAIL_PLACEHOLDERS: Record<Portal, string> = {
   student: 'student@demo.com',
   teacher: 'teacher@demo.com',
-  admin: 'admin@alnooracademy.com',
+  admin: 'admin@demo.com',
 }
 
 export default function LoginPage() {
@@ -31,7 +31,7 @@ export default function LoginPage() {
   const DEMO = {
     student: { email: 'student@demo.com', password: 'demo123' },
     teacher: { email: 'teacher@demo.com', password: 'demo123' },
-    admin: { email: 'admin@alnooracademy.com', password: 'admin123' },
+    admin: { email: 'admin@demo.com', password: 'demo123' },
   }
 
   async function handleLogin(e: React.FormEvent) {
@@ -142,11 +142,9 @@ export default function LoginPage() {
                 onChange={e => setEmail(e.target.value)}
                 required
               />
-              {portal === 'admin' && (
-                <p className="mt-2 text-xs text-slate-400">
-                  Admin login for Al Noor Academy: <span className="text-slate-200">admin@alnooracademy.com</span>
-                </p>
-              )}
+              <p className="mt-2 text-xs text-slate-400">
+                School accounts like <span className="text-slate-200">zara@alnooracademy.com</span> sign in with their EduOS credentials.
+              </p>
             </div>
             <div>
               <label className="label">Password</label>

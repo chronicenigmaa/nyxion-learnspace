@@ -42,6 +42,10 @@ class SSORequest(BaseModel):
     token: str
 
 
+def is_eduos_managed_email(email: str | None) -> bool:
+    return bool(email and email.strip().lower().endswith("@alnooracademy.com"))
+
+
 def normalize_role(role: str | None) -> Role:
     if role in (Role.student.value, Role.teacher.value, Role.school_admin.value, Role.super_admin.value):
         return Role(role)
@@ -120,6 +124,7 @@ def authenticate_with_eduos(email: str, password: str) -> dict | None:
 
 @router.post("/login", response_model=TokenResponse)
 def login(req: LoginRequest, db: Session = Depends(get_db)):
+    eduos_managed = is_eduos_managed_email(req.email)
     eduos_user = authenticate_with_eduos(req.email, req.password)
     if eduos_user:
         synced_user = sync_user_from_identity(
@@ -145,6 +150,11 @@ def login(req: LoginRequest, db: Session = Depends(get_db)):
             role=synced_user.role.value,
             email=synced_user.email
         )
+
+    if eduos_managed:
+        if not os.getenv("EDUOS_API_URL", "").rstrip("/"):
+            raise HTTPException(status_code=503, detail="EduOS login is not configured")
+        raise HTTPException(status_code=401, detail="Invalid EduOS email or password")
 
     user = db.query(User).filter(User.email == req.email).first()
     if user and verify_password(req.password, user.password_hash):

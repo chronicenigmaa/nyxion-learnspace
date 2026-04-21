@@ -40,14 +40,6 @@ def seed_demo(db: Session = Depends(get_db)):
             "role": Role.school_admin,
             "avatar_color": "#f59e0b",
         },
-        {
-            "name": "Al Noor Admin",
-            "email": "admin@alnooracademy.com",
-            "password": "admin123",
-            "role": Role.school_admin,
-            "school_id": "ALNOOR-ACADEMY",
-            "avatar_color": "#f59e0b",
-        },
     ]
     for data in demo_users:
         user = db.query(User).filter(User.email == data["email"]).first()
@@ -65,6 +57,17 @@ def seed_demo(db: Session = Depends(get_db)):
         user.avatar_color = data["avatar_color"]
         user.is_active = True
         db.flush()
+
+    # Remove legacy local Al Noor student fallbacks so those accounts must authenticate via EduOS.
+    for legacy_email in [
+        "admin@alnooracademy.com",
+        "zara@alnooracademy.com",
+        "hamza@alnooracademy.com",
+        "sana@alnooracademy.com",
+    ]:
+        legacy_user = db.query(User).filter(User.email == legacy_email).first()
+        if legacy_user:
+            db.delete(legacy_user)
 
     # ── TEACHERS
     teachers_data = [
