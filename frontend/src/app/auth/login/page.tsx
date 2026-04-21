@@ -25,7 +25,7 @@ export default function LoginPage() {
   const DEMO = {
     student: { email: 'student@demo.com', password: 'demo123' },
     teacher: { email: 'teacher@demo.com', password: 'demo123' },
-    admin: { email: 'admin@demo.com', password: 'demo123' },
+    admin: { email: 'admin@alnooracademy.com', password: 'admin123' },
   }
 
   async function handleLogin(e: React.FormEvent) {

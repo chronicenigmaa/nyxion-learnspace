@@ -85,13 +85,14 @@ You should see: `{"status": "ok", "service": "Nyxion LearnSpace"}`
 Run this once to seed demo accounts:
 
 ```bash
-curl -X POST https://YOUR-RAILWAY-URL.up.railway.app/api/v1/auth/seed-demo
+curl -X POST https://YOUR-RAILWAY-URL.up.railway.app/api/v1/seed/seed-demo
 ```
 
 Or open the URL in your browser. This creates:
 - `teacher@demo.com` / `demo123` (Teacher)
 - `student@demo.com` / `demo123` (Student)
 - `admin@demo.com` / `demo123` (Admin)
+- `admin@alnooracademy.com` / `admin123` (Admin)
 
 ---
 

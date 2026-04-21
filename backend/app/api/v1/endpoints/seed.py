@@ -14,6 +14,58 @@ router = APIRouter()
 def seed_demo(db: Session = Depends(get_db)):
     created = []
 
+    # ── GENERIC DEMO USERS
+    demo_users = [
+        {
+            "name": "Teacher Demo",
+            "email": "teacher@demo.com",
+            "password": "demo123",
+            "role": Role.teacher,
+            "subject": "General Studies",
+            "avatar_color": "#6366f1",
+        },
+        {
+            "name": "Student Demo",
+            "email": "student@demo.com",
+            "password": "demo123",
+            "role": Role.student,
+            "class_name": "Class 9A",
+            "roll_number": "09A-000",
+            "avatar_color": "#10b981",
+        },
+        {
+            "name": "Admin Demo",
+            "email": "admin@demo.com",
+            "password": "demo123",
+            "role": Role.school_admin,
+            "avatar_color": "#f59e0b",
+        },
+        {
+            "name": "Al Noor Admin",
+            "email": "admin@alnooracademy.com",
+            "password": "admin123",
+            "role": Role.school_admin,
+            "school_id": "ALNOOR-ACADEMY",
+            "avatar_color": "#f59e0b",
+        },
+    ]
+    for data in demo_users:
+        user = db.query(User).filter(User.email == data["email"]).first()
+        if not user:
+            user = User(email=data["email"])
+            db.add(user)
+            created.append(data["email"])
+        user.name = data["name"]
+        user.password_hash = hash_password(data["password"])
+        user.role = data["role"]
+        user.school_id = data.get("school_id")
+        user.subject = data.get("subject")
+        user.class_name = data.get("class_name")
+        user.roll_number = data.get("roll_number")
+        user.avatar_color = data["avatar_color"]
+        user.is_active = True
+        db.flush()
+
     # ── TEACHERS
     teachers_data = [
         {"name": "Ms. Fatima Malik",    "email": "fatima@demo.com",   "subject": "Mathematics"},
@@ -32,13 +84,6 @@ def seed_demo(db: Session = Depends(get_db)):
             db.add(u); db.flush(); teachers.append(u); created.append(t["email"])
         else:
             teachers.append(db.query(User).filter(User.email == t["email"]).first())
-
-    # ── ADMIN
-    if not db.query(User).filter(User.email == "admin@demo.com").first():
-        admin = User(name="Admin Zubair", email="admin@demo.com",
-                     password_hash=hash_password("demo123"),
-                     role=Role.school_admin, avatar_color="#f59e0b")
-        db.add(admin); db.flush(); created.append("admin@demo.com")
 
     # ── STUDENTS
     students_data = [
