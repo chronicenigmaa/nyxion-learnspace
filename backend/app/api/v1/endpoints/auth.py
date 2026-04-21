@@ -1,3 +1,7 @@
+import json
+import os
+from urllib import error, request as urllib_request
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
@@ -46,52 +50,7 @@ def normalize_role(role: str | None) -> Role:
     return Role.student
 
 
-@router.post("/login", response_model=TokenResponse)
-def login(req: LoginRequest, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.email == req.email).first()
-    if not user or not verify_password(req.password, user.password_hash):
-        raise HTTPException(status_code=401, detail="Invalid email or password")
-    if not user.is_active:
-        raise HTTPException(status_code=403, detail="Account is disabled")
-
-    token = create_access_token({"sub": str(user.id), "role": user.role.value})
-    return TokenResponse(
-        access_token=token,
-        user_id=str(user.id),
-        name=user.name,
-        role=user.role.value,
-        email=user.email
-    )
-
-
-@router.post("/sso", response_model=TokenResponse)
-def sso_login(req: SSORequest, db: Session = Depends(get_db)):
-    try:
-        payload = jwt.decode(req.token, SECRET_KEY, algorithms=[ALGORITHM])
-    except JWTError:
-        raise HTTPException(status_code=401, detail="Invalid SSO token")
-
-    email = payload.get("email")
-    if not email:
-        raise HTTPException(status_code=400, detail="SSO token missing email")
-
-    user = db.query(User).filter(User.email == email).first()
-    if not user:
-        user = User(email=email, password_hash=hash_password(email))
-        db.add(user)
-
-    user.name = payload.get("name") or user.name or email.split("@")[0].replace(".", " ").title()
-    user.role = normalize_role(payload.get("role"))
-    user.school_id = payload.get("school_id") or user.school_id
-    user.subject = payload.get("subject") or user.subject
-    user.class_name = payload.get("class_name") or user.class_name
-    user.roll_number = payload.get("roll_number") or user.roll_number
-    user.avatar_color = user.avatar_color or "#6366f1"
-    user.is_active = True
-
-    db.commit()
-    db.refresh(user)
-
+def issue_token_response(user: User) -> TokenResponse:
     token = create_access_token({
         "sub": str(user.id),
         "role": user.role.value,
@@ -105,6 +64,107 @@ def sso_login(req: SSORequest, db: Session = Depends(get_db)):
         role=user.role.value,
         email=user.email
     )
+
+
+def sync_user_from_identity(
+    db: Session,
+    *,
+    email: str,
+    password: str | None,
+    name: str | None,
+    role: str | None,
+    school_id: str | None = None,
+) -> User:
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        user = User(email=email, password_hash=hash_password(password or email))
+        db.add(user)
+
+    user.name = name or user.name or email.split("@")[0].replace(".", " ").title()
+    if password:
+        user.password_hash = hash_password(password)
+    user.role = normalize_role(role)
+    user.school_id = school_id or user.school_id
+    user.avatar_color = user.avatar_color or "#6366f1"
+    user.is_active = True
+
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+def authenticate_with_eduos(email: str, password: str) -> dict | None:
+    eduos_api_url = os.getenv("EDUOS_API_URL", "").rstrip("/")
+    if not eduos_api_url:
+        return None
+
+    payload = json.dumps({"email": email, "password": password}).encode("utf-8")
+    req = urllib_request.Request(
+        f"{eduos_api_url}/api/v1/auth/login",
+        data=payload,
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    try:
+        with urllib_request.urlopen(req, timeout=10) as res:
+            data = json.loads(res.read().decode("utf-8"))
+            return data.get("user")
+    except error.HTTPError as exc:
+        if exc.code in (400, 401, 403, 404):
+            return None
+        raise
+    except (error.URLError, TimeoutError, json.JSONDecodeError):
+        return None
+
+
+@router.post("/login", response_model=TokenResponse)
+def login(req: LoginRequest, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == req.email).first()
+    if user and verify_password(req.password, user.password_hash):
+        if not user.is_active:
+            raise HTTPException(status_code=403, detail="Account is disabled")
+        return issue_token_response(user)
+
+    eduos_user = authenticate_with_eduos(req.email, req.password)
+    if eduos_user:
+        synced_user = sync_user_from_identity(
+            db,
+            email=req.email,
+            password=req.password,
+            name=eduos_user.get("full_name") or eduos_user.get("name"),
+            role=eduos_user.get("role"),
+            school_id=eduos_user.get("school_id"),
+        )
+        return issue_token_response(synced_user)
+
+    raise HTTPException(status_code=401, detail="Invalid email or password")
+
+
+@router.post("/sso", response_model=TokenResponse)
+def sso_login(req: SSORequest, db: Session = Depends(get_db)):
+    try:
+        payload = jwt.decode(req.token, SECRET_KEY, algorithms=[ALGORITHM])
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid SSO token")
+
+    email = payload.get("email")
+    if not email:
+        raise HTTPException(status_code=400, detail="SSO token missing email")
+
+    user = sync_user_from_identity(
+        db,
+        email=email,
+        password=None,
+        name=payload.get("name"),
+        role=payload.get("role"),
+        school_id=payload.get("school_id"),
+    )
+    user.subject = payload.get("subject") or user.subject
+    user.class_name = payload.get("class_name") or user.class_name
+    user.roll_number = payload.get("roll_number") or user.roll_number
+    db.commit()
+    db.refresh(user)
+    return issue_token_response(user)
 
 
 @router.post("/register")
