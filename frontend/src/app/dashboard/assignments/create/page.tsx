@@ -6,13 +6,16 @@ import toast from 'react-hot-toast'
 import { Upload, X, ArrowLeft, FileText } from 'lucide-react'
 import Link from 'next/link'
 
+const SUBJECT_OPTIONS = ['Mathematics', 'Physics', 'English', 'Chemistry', 'Biology', 'Science']
+const CLASS_OPTIONS = ['Class 8A', 'Class 8B', 'Class 9A', 'Class 9B', 'Class 10A', 'Class 10B']
+
 export default function CreateAssignmentPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [files, setFiles] = useState<File[]>([])
   const [form, setForm] = useState({
     title: '', description: '', subject: '', class_name: '',
-    due_date: '', max_marks: '100', allow_late: false
+    due_date: '', due_time: '23:59', max_marks: '100', allow_late: false
   })
 
   function set(k: string, v: any) { setForm(p => ({ ...p, [k]: v })) }
@@ -25,14 +28,22 @@ export default function CreateAssignmentPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!form.title || !form.subject || !form.class_name || !form.due_date) {
+    if (!form.title || !form.subject || !form.class_name || !form.due_date || !form.due_time) {
       toast.error('Please fill all required fields')
       return
     }
     setLoading(true)
     try {
       const data = new FormData()
-      Object.entries(form).forEach(([k, v]) => data.append(k, String(v)))
+      const dueDateTime = `${form.due_date}T${form.due_time}`
+      Object.entries(form).forEach(([k, v]) => {
+        if (k === 'due_time') return
+        if (k === 'due_date') {
+          data.append('due_date', dueDateTime)
+          return
+        }
+        data.append(k, String(v))
+      })
       files.forEach(f => data.append('files', f))
       await createAssignment(data)
       toast.success('Assignment created!')
@@ -71,23 +82,27 @@ export default function CreateAssignmentPage() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="label">Subject *</label>
-              <input className="input" placeholder="Mathematics" value={form.subject} onChange={e => set('subject', e.target.value)} required />
+              <select className="input" value={form.subject} onChange={e => set('subject', e.target.value)} required>
+                <option value="">Select subject</option>
+                {SUBJECT_OPTIONS.map(subject => (
+                  <option key={subject} value={subject}>{subject}</option>
+                ))}
+              </select>
             </div>
             <div>
               <label className="label">Class *</label>
-              <input className="input" placeholder="Class 9A" value={form.class_name} onChange={e => set('class_name', e.target.value)} required />
+              <select className="input" value={form.class_name} onChange={e => set('class_name', e.target.value)} required>
+                <option value="">Select class</option>
+                {CLASS_OPTIONS.map(className => (
+                  <option key={className} value={className}>{className}</option>
+                ))}
+              </select>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="label">Due Date *</label>
-              <input type="datetime-local" className="input" value={form.due_date} onChange={e => set('due_date', e.target.value)} required />
-            </div>
-            <div>
-              <label className="label">Max Marks</label>
-              <input type="number" className="input" value={form.max_marks} onChange={e => set('max_marks', e.target.value)} min="1" max="1000" />
-            </div>
+          <div>
+            <label className="label">Max Marks</label>
+            <input type="number" className="input" value={form.max_marks} onChange={e => set('max_marks', e.target.value)} min="1" max="1000" />
           </div>
 
           <label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border border-[var(--border)] hover:border-indigo-500/30 transition-colors"
@@ -98,6 +113,30 @@ export default function CreateAssignmentPage() {
               <div className="text-xs text-slate-400">Students can still submit after the deadline</div>
             </div>
           </label>
+        </div>
+
+        <div className="card p-5 space-y-4">
+          <h3 className="font-semibold text-white text-sm uppercase tracking-wider text-slate-400">Deadline</h3>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="label">Due Date *</label>
+              <input type="date" className="input" value={form.due_date} onChange={e => set('due_date', e.target.value)} required />
+            </div>
+            <div>
+              <label className="label">Due Time *</label>
+              <input type="time" className="input" value={form.due_time} onChange={e => set('due_time', e.target.value)} required />
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-[var(--border)] px-4 py-3 text-sm text-slate-400" style={{ background: 'var(--surface-700)' }}>
+            Students will see this assignment due on
+            <span className="ml-1 text-slate-200">
+              {form.due_date ? form.due_date : 'select a date'}
+              {' '}
+              {form.due_time || 'select a time'}
+            </span>
+          </div>
         </div>
 
         {/* File attachments */}
