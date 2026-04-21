@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
 import { GraduationCap, BookOpen, ChevronRight } from 'lucide-react'
 import { getTeachers, getStudents, getUser } from '@/lib/api'
@@ -22,6 +22,7 @@ type Student = {
 }
 
 export default function UsersPage() {
+  const router = useRouter()
   const [teachers, setTeachers] = useState<Teacher[]>([])
   const [students, setStudents] = useState<Student[]>([])
   const [loading, setLoading] = useState(true)
@@ -104,12 +105,16 @@ export default function UsersPage() {
                 </tr>
               )}
               {teachers.map((teacher) => (
-                <tr key={teacher.id} className="border-b border-[var(--border)]/60 text-slate-200">
+                <tr
+                  key={teacher.id}
+                  onClick={() => router.push(`/dashboard/users/teachers/${teacher.id}`)}
+                  className="cursor-pointer border-b border-[var(--border)]/60 text-slate-200 transition-colors hover:bg-[var(--surface-900)]/70"
+                >
                   <td className="py-3">
-                    <Link href={`/dashboard/users/teachers/${teacher.id}`} className="inline-flex items-center gap-2 text-slate-100 hover:text-white">
+                    <div className="inline-flex items-center gap-2 text-slate-100">
                       <span>{teacher.name}</span>
                       <ChevronRight size={14} />
-                    </Link>
+                    </div>
                   </td>
                   <td className="py-3">{teacher.email}</td>
                   <td className="py-3">Teacher</td>
