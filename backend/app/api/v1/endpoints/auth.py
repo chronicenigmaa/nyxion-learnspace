@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
+from jose import JWTError, jwt
 from app.db.database import get_db
 from app.models.models import User, Role
-from app.core.security import verify_password, hash_password, create_access_token, get_current_user
+from app.core.security import verify_password, hash_password, create_access_token, get_current_user, SECRET_KEY, ALGORITHM
 
 router = APIRouter()
 
@@ -33,6 +34,18 @@ class TokenResponse(BaseModel):
     email: str
 
 
+class SSORequest(BaseModel):
+    token: str
+
+
+def normalize_role(role: str | None) -> Role:
+    if role in (Role.student.value, Role.teacher.value, Role.school_admin.value, Role.super_admin.value):
+        return Role(role)
+    if role == "admin":
+        return Role.school_admin
+    return Role.student
+
+
 @router.post("/login", response_model=TokenResponse)
 def login(req: LoginRequest, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == req.email).first()
@@ -42,6 +55,49 @@ def login(req: LoginRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=403, detail="Account is disabled")
 
     token = create_access_token({"sub": str(user.id), "role": user.role.value})
+    return TokenResponse(
+        access_token=token,
+        user_id=str(user.id),
+        name=user.name,
+        role=user.role.value,
+        email=user.email
+    )
+
+
+@router.post("/sso", response_model=TokenResponse)
+def sso_login(req: SSORequest, db: Session = Depends(get_db)):
+    try:
+        payload = jwt.decode(req.token, SECRET_KEY, algorithms=[ALGORITHM])
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid SSO token")
+
+    email = payload.get("email")
+    if not email:
+        raise HTTPException(status_code=400, detail="SSO token missing email")
+
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        user = User(email=email, password_hash=hash_password(email))
+        db.add(user)
+
+    user.name = payload.get("name") or user.name or email.split("@")[0].replace(".", " ").title()
+    user.role = normalize_role(payload.get("role"))
+    user.school_id = payload.get("school_id") or user.school_id
+    user.subject = payload.get("subject") or user.subject
+    user.class_name = payload.get("class_name") or user.class_name
+    user.roll_number = payload.get("roll_number") or user.roll_number
+    user.avatar_color = user.avatar_color or "#6366f1"
+    user.is_active = True
+
+    db.commit()
+    db.refresh(user)
+
+    token = create_access_token({
+        "sub": str(user.id),
+        "role": user.role.value,
+        "email": user.email,
+        "name": user.name,
+    })
     return TokenResponse(
         access_token=token,
         user_id=str(user.id),

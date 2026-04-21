@@ -32,6 +32,8 @@ api.interceptors.response.use(
 // Auth
 export const login = (email: string, password: string) =>
   api.post('/api/v1/auth/login', { email, password })
+export const ssoLogin = (token: string) =>
+  api.post('/api/v1/auth/sso', { token })
 
 export const getMe = () => api.get('/api/v1/auth/me')
 

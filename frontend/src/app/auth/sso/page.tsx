@@ -1,6 +1,7 @@
 'use client'
 import React, { useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { ssoLogin } from '@/lib/api'
 
 function SSOHandler() {
   const router = useRouter()
@@ -8,21 +9,34 @@ function SSOHandler() {
 
   useEffect(() => {
     const token = params.get('token')
-    if (!token) { router.replace('/auth/login'); return }
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]))
-      localStorage.setItem('ls_token', token)
-      localStorage.setItem('ls_user', JSON.stringify({
-        id: payload.sub,
-        name: payload.name,
-        email: payload.email,
-        role: payload.role,
-      }))
-      router.replace('/dashboard')
-    } catch {
+    if (!token) {
       router.replace('/auth/login')
+      return
     }
-  }, [])
+
+    let active = true
+    ;(async () => {
+      try {
+        const res = await ssoLogin(token)
+        const { access_token, user_id, name, role, email } = res.data
+        if (!active) return
+        localStorage.setItem('ls_token', access_token)
+        localStorage.setItem('ls_user', JSON.stringify({
+          id: user_id,
+          name,
+          email,
+          role,
+        }))
+        router.replace('/dashboard')
+      } catch {
+        router.replace('/auth/login')
+      }
+    })()
+
+    return () => {
+      active = false
+    }
+  }, [params, router])
 
   return (
     <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'#0f0f23', color:'#6366f1', fontFamily:'monospace' }}>
