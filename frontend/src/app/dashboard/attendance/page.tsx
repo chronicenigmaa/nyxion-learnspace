@@ -38,7 +38,13 @@ export default function AttendancePage() {
     if (!className || students.length === 0) return
     setSaving(true)
     try {
-      const records = students.map(s => ({ student_id: s.id, is_present: attendance[s.id] ?? true }))
+      const records = students.map(s => ({
+        student_id: s.id,
+        student_name: s.name,
+        class_name: s.class_name ? `${s.class_name}${s.section ? `-${s.section}` : ''}` : className,
+        roll_number: s.roll_number,
+        is_present: attendance[s.id] ?? true,
+      }))
       await markAttendance({ class_name: className, date, records })
       toast.success('Attendance saved!')
     } catch { toast.error('Failed to save') }

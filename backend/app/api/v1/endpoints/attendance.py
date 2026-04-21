@@ -1,3 +1,5 @@
+import uuid
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
@@ -5,13 +7,16 @@ from typing import List, Optional
 from datetime import date
 from app.db.database import get_db
 from app.models.models import Attendance, User, Role, Submission, Assignment
-from app.core.security import get_current_user
+from app.core.security import get_current_user, hash_password
 
 router = APIRouter()
 
 
 class AttendanceRecord(BaseModel):
     student_id: str
+    student_name: Optional[str] = None
+    class_name: Optional[str] = None
+    roll_number: Optional[str] = None
     is_present: bool
 
 
@@ -28,8 +33,38 @@ def mark_bulk_attendance(req: BulkAttendanceRequest, db: Session = Depends(get_d
         raise HTTPException(status_code=403, detail="Teachers only")
 
     for record in req.records:
+        try:
+            student_uuid = uuid.UUID(record.student_id)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid student id")
+
+        student = db.query(User).filter(User.id == student_uuid).first()
+        if not student:
+            shadow_email = f"eduos-student-{student_uuid}@learnspace.local"
+            student = User(
+                id=student_uuid,
+                name=record.student_name or f"Student {record.student_id[:8]}",
+                email=shadow_email,
+                password_hash=hash_password(str(student_uuid)),
+                role=Role.student,
+                school_id=current_user.school_id,
+                class_name=record.class_name or req.class_name,
+                roll_number=record.roll_number,
+                avatar_color="#10b981",
+                is_active=True,
+            )
+            db.add(student)
+            db.flush()
+        else:
+            if record.student_name:
+                student.name = record.student_name
+            if record.class_name:
+                student.class_name = record.class_name
+            if record.roll_number:
+                student.roll_number = record.roll_number
+
         existing = db.query(Attendance).filter(
-            Attendance.student_id == record.student_id,
+            Attendance.student_id == student_uuid,
             Attendance.date == req.date,
             Attendance.class_name == req.class_name
         ).first()
@@ -37,7 +72,7 @@ def mark_bulk_attendance(req: BulkAttendanceRequest, db: Session = Depends(get_d
             existing.is_present = record.is_present
         else:
             att = Attendance(
-                student_id=record.student_id,
+                student_id=student_uuid,
                 class_name=req.class_name,
                 subject=req.subject,
                 date=req.date,
