@@ -14,6 +14,12 @@ const PORTALS = [
   { id: 'admin', label: 'Admin', icon: ShieldCheck, color: '#f59e0b', desc: 'School administration' },
 ]
 
+const EMAIL_PLACEHOLDERS: Record<Portal, string> = {
+  student: 'student@demo.com',
+  teacher: 'teacher@demo.com',
+  admin: 'admin@alnooracademy.com',
+}
+
 export default function LoginPage() {
   const router = useRouter()
   const [portal, setPortal] = useState<Portal>('student')
@@ -131,11 +137,16 @@ export default function LoginPage() {
               <input
                 type="email"
                 className="input"
-                placeholder={`${portal}@school.edu`}
+                placeholder={EMAIL_PLACEHOLDERS[portal]}
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 required
               />
+              {portal === 'admin' && (
+                <p className="mt-2 text-xs text-slate-400">
+                  Admin login for Al Noor Academy: <span className="text-slate-200">admin@alnooracademy.com</span>
+                </p>
+              )}
             </div>
             <div>
               <label className="label">Password</label>
