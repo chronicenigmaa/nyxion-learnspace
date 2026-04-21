@@ -93,16 +93,28 @@ def fetch_eduos_students(token: str, class_name: str | None = None):
 
 def fetch_eduos_teachers(token: str):
     data = fetch_eduos_json("/api/v1/teachers/", token)
-    if data is None:
+    sections = fetch_eduos_json("/api/v1/academics/sections", token)
+    if data is None or sections is None:
         return None
 
     teachers = []
     for teacher in data:
+        teacher_id = str(teacher.get("id"))
+        assigned_sections = [
+            {
+                "id": str(section.get("id")),
+                "class_name": section.get("class_name"),
+                "section": section.get("section") or "",
+            }
+            for section in sections
+            if str(section.get("class_teacher_id") or "") == teacher_id
+        ]
         teachers.append({
-            "id": str(teacher.get("id")),
+            "id": teacher_id,
             "name": teacher.get("full_name") or teacher.get("name"),
             "email": teacher.get("email") or "",
             "subject": teacher.get("subject"),
+            "assigned_sections": assigned_sections,
         })
     return teachers
 

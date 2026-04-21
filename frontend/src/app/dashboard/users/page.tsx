@@ -11,6 +11,11 @@ type Teacher = {
   name: string
   email: string
   subject?: string
+  assigned_sections?: Array<{
+    id: string
+    class_name?: string
+    section?: string
+  }>
 }
 
 type Student = {
@@ -119,7 +124,13 @@ export default function UsersPage() {
                   <td className="py-3">{teacher.email}</td>
                   <td className="py-3">Teacher</td>
                   <td className="py-3">{teacher.subject || '-'}</td>
-                  <td className="py-3 text-slate-400">Not assigned</td>
+                  <td className="py-3 text-slate-400">
+                    {teacher.assigned_sections && teacher.assigned_sections.length > 0
+                      ? teacher.assigned_sections
+                          .map((section) => `${section.class_name || '-'}${section.section ? `-${section.section}` : ''}`)
+                          .join(', ')
+                      : 'Not assigned'}
+                  </td>
                 </tr>
               ))}
             </tbody>
