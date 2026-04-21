@@ -6,6 +6,9 @@ import toast from 'react-hot-toast'
 import { Plus, Trash2, ArrowLeft, Shield, CheckSquare } from 'lucide-react'
 import Link from 'next/link'
 
+const SUBJECT_OPTIONS = ['Mathematics', 'Physics', 'English', 'Chemistry', 'Biology', 'Science']
+const CLASS_OPTIONS = ['Class 8A', 'Class 8B', 'Class 9A', 'Class 9B', 'Class 10A', 'Class 10B']
+
 interface Question {
   id: string; type: 'mcq' | 'short' | 'long'
   question: string; options?: string[]; correct_answer?: string; marks: number
@@ -78,8 +81,24 @@ export default function CreateExamPage() {
             <input className="input" placeholder="Mid-Term Mathematics" value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))} required />
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <div><label className="label">Subject *</label><input className="input" placeholder="Mathematics" value={form.subject} onChange={e => setForm(p => ({ ...p, subject: e.target.value }))} required /></div>
-            <div><label className="label">Class *</label><input className="input" placeholder="Class 9A" value={form.class_name} onChange={e => setForm(p => ({ ...p, class_name: e.target.value }))} required /></div>
+            <div>
+              <label className="label">Subject *</label>
+              <select className="input" value={form.subject} onChange={e => setForm(p => ({ ...p, subject: e.target.value }))} required>
+                <option value="">Select subject</option>
+                {SUBJECT_OPTIONS.map(subject => (
+                  <option key={subject} value={subject}>{subject}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="label">Class *</label>
+              <select className="input" value={form.class_name} onChange={e => setForm(p => ({ ...p, class_name: e.target.value }))} required>
+                <option value="">Select class</option>
+                {CLASS_OPTIONS.map(className => (
+                  <option key={className} value={className}>{className}</option>
+                ))}
+              </select>
+            </div>
           </div>
           <div className="grid grid-cols-3 gap-4">
             <div><label className="label">Duration (min)</label><input type="number" className="input" value={form.duration_minutes} onChange={e => setForm(p => ({ ...p, duration_minutes: +e.target.value }))} min="5" /></div>
