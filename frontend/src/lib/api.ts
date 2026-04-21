@@ -90,6 +90,7 @@ export const getStudentGrades = (id: string) => api.get(`/api/v1/grades/student/
 export const getStudents = (className?: string) =>
   api.get('/api/v1/users/students' + (className ? `?class_name=${encodeURIComponent(className)}` : ''))
 export const getTeachers = () => api.get('/api/v1/users/teachers')
+export const getTeacherDetail = (id: string) => api.get(`/api/v1/users/teachers/${id}`)
 
 // Auth helpers
 export const getUser = () => {
