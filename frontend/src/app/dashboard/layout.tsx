@@ -21,6 +21,7 @@ const NAV: NavItem[] = [
   { label: 'My Attendance', href: '/dashboard/attendance/my', icon: Calendar, roles: ['student'] },
   { label: 'Grades', href: '/dashboard/grades', icon: BarChart2, roles: ['student', 'teacher', 'school_admin'] },
   { label: 'Calendar', href: '/dashboard/calendar', icon: Calendar, roles: ['student', 'teacher', 'school_admin', 'super_admin'] },
+  { label: 'Users', href: '/dashboard/users', icon: Users, roles: ['school_admin', 'super_admin'] },
   { label: 'Students', href: '/dashboard/students', icon: Users, roles: ['teacher', 'school_admin', 'super_admin'] },
 ]
 
