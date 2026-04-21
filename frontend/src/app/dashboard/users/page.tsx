@@ -26,6 +26,13 @@ export default function UsersPage() {
   const [loading, setLoading] = useState(true)
   const user = getUser()
   const isAdmin = user?.role === 'school_admin' || user?.role === 'super_admin'
+  const studentsByClass = students.reduce<Record<string, Student[]>>((acc, student) => {
+    const key = student.class_name || 'Unassigned'
+    if (!acc[key]) acc[key] = []
+    acc[key].push(student)
+    return acc
+  }, {})
+  const classEntries = Object.entries(studentsByClass).sort(([a], [b]) => a.localeCompare(b))
 
   useEffect(() => {
     if (!isAdmin) return
@@ -148,6 +155,39 @@ export default function UsersPage() {
               ))}
             </tbody>
           </table>
+        </div>
+      </section>
+
+      <section className="rounded-2xl border border-[var(--border)] p-5" style={{ background: 'var(--surface-850)' }}>
+        <div className="mb-4">
+          <h2 className="text-lg font-semibold text-white">Assigned Students By Class</h2>
+          <p className="text-sm text-slate-400">Quick roster view so you can verify which students are assigned to each class.</p>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {!loading && classEntries.length === 0 && (
+            <div className="rounded-xl border border-[var(--border)] p-4 text-sm text-slate-500">
+              No class roster data found.
+            </div>
+          )}
+          {classEntries.map(([className, roster]) => (
+            <div key={className} className="rounded-xl border border-[var(--border)] p-4">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <h3 className="font-semibold text-white">{className}</h3>
+                <span className="badge badge-green">{roster.length} students</span>
+              </div>
+              <div className="space-y-2">
+                {roster.map((student) => (
+                  <div key={student.id} className="rounded-lg px-3 py-2" style={{ background: 'var(--surface-900)' }}>
+                    <div className="text-sm font-medium text-slate-100">{student.name}</div>
+                    <div className="text-xs text-slate-400">
+                      {student.roll_number || 'No roll number'}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       </section>
 

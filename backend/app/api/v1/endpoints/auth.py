@@ -120,12 +120,6 @@ def authenticate_with_eduos(email: str, password: str) -> dict | None:
 
 @router.post("/login", response_model=TokenResponse)
 def login(req: LoginRequest, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.email == req.email).first()
-    if user and verify_password(req.password, user.password_hash):
-        if not user.is_active:
-            raise HTTPException(status_code=403, detail="Account is disabled")
-        return issue_token_response(user)
-
     eduos_user = authenticate_with_eduos(req.email, req.password)
     if eduos_user:
         synced_user = sync_user_from_identity(
@@ -151,6 +145,12 @@ def login(req: LoginRequest, db: Session = Depends(get_db)):
             role=synced_user.role.value,
             email=synced_user.email
         )
+
+    user = db.query(User).filter(User.email == req.email).first()
+    if user and verify_password(req.password, user.password_hash):
+        if not user.is_active:
+            raise HTTPException(status_code=403, detail="Account is disabled")
+        return issue_token_response(user)
 
     raise HTTPException(status_code=401, detail="Invalid email or password")
 

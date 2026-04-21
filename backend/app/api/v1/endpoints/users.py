@@ -13,7 +13,7 @@ from jose import jwt
 router = APIRouter()
 
 
-def fetch_eduos_students(token: str, class_name: str | None = None):
+def build_eduos_token(token: str):
     eduos_api_url = os.getenv("EDUOS_API_URL", "").rstrip("/")
     if not eduos_api_url:
         return None
@@ -27,7 +27,7 @@ def fetch_eduos_students(token: str, class_name: str | None = None):
     if not eduos_sub:
         return None
 
-    eduos_token = jwt.encode(
+    return jwt.encode(
         {
             "sub": eduos_sub,
             "school_id": payload.get("school_id"),
@@ -37,6 +37,14 @@ def fetch_eduos_students(token: str, class_name: str | None = None):
         SECRET_KEY,
         algorithm=ALGORITHM,
     )
+
+
+def fetch_eduos_students(token: str, class_name: str | None = None):
+    eduos_api_url = os.getenv("EDUOS_API_URL", "").rstrip("/")
+    eduos_token = build_eduos_token(token)
+    if not eduos_api_url or not eduos_token:
+        return None
+
     req = urllib_request.Request(
         f"{eduos_api_url}/api/v1/students/",
         headers={"Authorization": f"Bearer {eduos_token}"},
@@ -63,6 +71,34 @@ def fetch_eduos_students(token: str, class_name: str | None = None):
     return students
 
 
+def fetch_eduos_teachers(token: str):
+    eduos_api_url = os.getenv("EDUOS_API_URL", "").rstrip("/")
+    eduos_token = build_eduos_token(token)
+    if not eduos_api_url or not eduos_token:
+        return None
+
+    req = urllib_request.Request(
+        f"{eduos_api_url}/api/v1/teachers/",
+        headers={"Authorization": f"Bearer {eduos_token}"},
+        method="GET",
+    )
+    try:
+        with urllib_request.urlopen(req, timeout=10) as res:
+            data = json.loads(res.read().decode("utf-8"))
+    except (error.HTTPError, error.URLError, TimeoutError, json.JSONDecodeError):
+        return None
+
+    teachers = []
+    for teacher in data:
+        teachers.append({
+            "id": str(teacher.get("id")),
+            "name": teacher.get("full_name") or teacher.get("name"),
+            "email": teacher.get("email") or "",
+            "subject": teacher.get("subject"),
+        })
+    return teachers
+
+
 @router.get("/students")
 def list_students(
     class_name: str = None,
@@ -83,8 +119,15 @@ def list_students(
 
 
 @router.get("/teachers")
-def list_teachers(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def list_teachers(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    token: str = Depends(oauth2_scheme),
+):
     if current_user.role not in [Role.school_admin, Role.super_admin]:
         raise HTTPException(status_code=403)
+    eduos_teachers = fetch_eduos_teachers(token)
+    if eduos_teachers is not None:
+        return eduos_teachers
     teachers = db.query(User).filter(User.role == Role.teacher).all()
     return [{"id": str(t.id), "name": t.name, "email": t.email, "subject": t.subject} for t in teachers]
