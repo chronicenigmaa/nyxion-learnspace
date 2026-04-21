@@ -56,6 +56,7 @@ def issue_token_response(user: User) -> TokenResponse:
         "role": user.role.value,
         "email": user.email,
         "name": user.name,
+        "school_id": user.school_id,
     })
     return TokenResponse(
         access_token=token,
@@ -135,7 +136,21 @@ def login(req: LoginRequest, db: Session = Depends(get_db)):
             role=eduos_user.get("role"),
             school_id=eduos_user.get("school_id"),
         )
-        return issue_token_response(synced_user)
+        token = create_access_token({
+            "sub": str(synced_user.id),
+            "role": synced_user.role.value,
+            "email": synced_user.email,
+            "name": synced_user.name,
+            "school_id": synced_user.school_id,
+            "eduos_sub": eduos_user.get("id"),
+        })
+        return TokenResponse(
+            access_token=token,
+            user_id=str(synced_user.id),
+            name=synced_user.name,
+            role=synced_user.role.value,
+            email=synced_user.email
+        )
 
     raise HTTPException(status_code=401, detail="Invalid email or password")
 
@@ -164,7 +179,21 @@ def sso_login(req: SSORequest, db: Session = Depends(get_db)):
     user.roll_number = payload.get("roll_number") or user.roll_number
     db.commit()
     db.refresh(user)
-    return issue_token_response(user)
+    token = create_access_token({
+        "sub": str(user.id),
+        "role": user.role.value,
+        "email": user.email,
+        "name": user.name,
+        "school_id": user.school_id,
+        "eduos_sub": payload.get("sub"),
+    })
+    return TokenResponse(
+        access_token=token,
+        user_id=str(user.id),
+        name=user.name,
+        role=user.role.value,
+        email=user.email
+    )
 
 
 @router.post("/register")
