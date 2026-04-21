@@ -19,7 +19,7 @@ export default function CreateExamPage() {
   const [loading, setLoading] = useState(false)
   const [form, setForm] = useState({
     title: '', subject: '', class_name: '',
-    duration_minutes: 60, total_marks: 100, scheduled_at: '',
+    duration_minutes: 60, total_marks: 100, scheduled_date: '', scheduled_time: '09:00',
     restrict_tab_switch: true, restrict_copy_paste: true,
     restrict_right_click: true, fullscreen_required: true,
     max_tab_warnings: 3, shuffle_questions: true,
@@ -52,9 +52,14 @@ export default function CreateExamPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (questions.length === 0) { toast.error('Add at least one question'); return }
+    if (!form.scheduled_date || !form.scheduled_time) { toast.error('Select exam date and time'); return }
     setLoading(true)
     try {
-      await createExam({ ...form, questions })
+      await createExam({
+        ...form,
+        scheduled_at: `${form.scheduled_date}T${form.scheduled_time}:00`,
+        questions,
+      })
       toast.success('Exam scheduled!')
       router.push('/dashboard/exams')
     } catch (err: any) {
@@ -100,10 +105,11 @@ export default function CreateExamPage() {
               </select>
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-4 gap-4">
             <div><label className="label">Duration (min)</label><input type="number" className="input" value={form.duration_minutes} onChange={e => setForm(p => ({ ...p, duration_minutes: +e.target.value }))} min="5" /></div>
             <div><label className="label">Total Marks</label><input type="number" className="input" value={form.total_marks} onChange={e => setForm(p => ({ ...p, total_marks: +e.target.value }))} /></div>
-            <div><label className="label">Scheduled At *</label><input type="datetime-local" className="input" value={form.scheduled_at} onChange={e => setForm(p => ({ ...p, scheduled_at: e.target.value }))} required /></div>
+            <div><label className="label">Exam Date *</label><input type="date" className="input" value={form.scheduled_date} onChange={e => setForm(p => ({ ...p, scheduled_date: e.target.value }))} required /></div>
+            <div><label className="label">Exam Time *</label><input type="time" className="input" value={form.scheduled_time} onChange={e => setForm(p => ({ ...p, scheduled_time: e.target.value }))} required /></div>
           </div>
         </div>
 
