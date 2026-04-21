@@ -13,6 +13,19 @@ from jose import jwt
 router = APIRouter()
 
 
+def normalize_class_filter(value: str | None) -> tuple[str | None, str | None]:
+    if not value:
+        return None, None
+    raw = value.strip()
+    if not raw:
+        return None, None
+    lowered = raw.lower().replace("class", "").strip()
+    normalized = lowered.replace(" ", "").replace("-", "")
+    if len(normalized) >= 2 and normalized[-1].isalpha():
+        return normalized[:-1], normalized[-1].upper()
+    return lowered.upper(), None
+
+
 def extract_eduos_context(token: str):
     eduos_api_url = os.getenv("EDUOS_API_URL", "").rstrip("/")
     if not eduos_api_url:
@@ -75,10 +88,16 @@ def fetch_eduos_students(token: str, class_name: str | None = None):
     if data is None:
         return None
 
+    filter_class, filter_section = normalize_class_filter(class_name)
     students = []
     for student in data:
-        if class_name and student.get("class_name") != class_name:
-            continue
+        student_class = str(student.get("class_name") or "").strip()
+        student_section = str(student.get("section") or "").strip().upper()
+        if filter_class:
+            if student_class != filter_class:
+                continue
+            if filter_section is not None and student_section != filter_section:
+                continue
         full_name = student.get("full_name") or student.get("name")
         students.append({
             "id": str(student.get("id")),
@@ -209,11 +228,26 @@ def list_students(
     eduos_students = fetch_eduos_students(token, class_name)
     if eduos_students is not None:
         return eduos_students
+    filter_class, filter_section = normalize_class_filter(class_name)
     query = db.query(User).filter(User.role == Role.student)
-    if class_name:
-        query = query.filter(User.class_name == class_name)
     students = query.all()
-    return [{"id": str(s.id), "name": s.name, "email": s.email, "class_name": s.class_name, "roll_number": s.roll_number} for s in students]
+    result = []
+    for s in students:
+        student_class, student_section = normalize_class_filter(s.class_name)
+        if filter_class:
+            if student_class != filter_class:
+                continue
+            if filter_section is not None and student_section != filter_section:
+                continue
+        result.append({
+            "id": str(s.id),
+            "name": s.name,
+            "email": s.email,
+            "class_name": s.class_name,
+            "section": student_section or "",
+            "roll_number": s.roll_number,
+        })
+    return result
 
 
 @router.get("/teachers")

@@ -5,6 +5,8 @@ import toast from 'react-hot-toast'
 import { Calendar, CheckCircle, XCircle, Users } from 'lucide-react'
 import { format } from 'date-fns'
 
+const CLASS_OPTIONS = ['8-A', '8-B', '9-A', '9-B', '10-A', '10-B']
+
 export default function AttendancePage() {
   const [user, setUser] = useState<any>(null)
   const [students, setStudents] = useState<any[]>([])
@@ -21,13 +23,14 @@ export default function AttendancePage() {
   }, [])
 
   async function loadStudents() {
-    if (!className) { toast.error('Enter class name'); return }
+    if (!className) { toast.error('Select a class'); return }
     try {
       const r = await getStudents(className)
       setStudents(r.data)
       const init: Record<string, boolean> = {}
       r.data.forEach((s: any) => init[s.id] = true)
       setAttendance(init)
+      if (r.data.length === 0) toast.error('No students found for this class')
     } catch { toast.error('Failed to load students') }
   }
 
@@ -43,7 +46,7 @@ export default function AttendancePage() {
   }
 
   async function loadReport() {
-    if (!className) { toast.error('Enter class name'); return }
+    if (!className) { toast.error('Select a class'); return }
     try {
       const r = await getClassAttendance(className)
       setReport(r.data)
@@ -75,7 +78,12 @@ export default function AttendancePage() {
           <div className="card p-5 flex gap-4 flex-wrap">
             <div className="flex-1 min-w-40">
               <label className="label">Class Name</label>
-              <input className="input" placeholder="Class 9A" value={className} onChange={e => setClassName(e.target.value)} onKeyDown={e => e.key === 'Enter' && loadStudents()} />
+              <select className="input" value={className} onChange={e => setClassName(e.target.value)}>
+                <option value="">Select class</option>
+                {CLASS_OPTIONS.map(option => (
+                  <option key={option} value={option}>{option}</option>
+                ))}
+              </select>
             </div>
             <div className="flex-1 min-w-40">
               <label className="label">Date</label>
@@ -126,6 +134,11 @@ export default function AttendancePage() {
               </button>
             </>
           )}
+          {className && students.length === 0 && (
+            <div className="card p-6 text-sm text-slate-400">
+              No students loaded for <span className="text-slate-200">{className}</span>. Check that students exist in this class-section in EduOS.
+            </div>
+          )}
         </>
       )}
 
@@ -134,7 +147,12 @@ export default function AttendancePage() {
           <div className="card p-5 flex gap-4">
             <div className="flex-1">
               <label className="label">Class Name</label>
-              <input className="input" placeholder="Class 9A" value={className} onChange={e => setClassName(e.target.value)} />
+              <select className="input" value={className} onChange={e => setClassName(e.target.value)}>
+                <option value="">Select class</option>
+                {CLASS_OPTIONS.map(option => (
+                  <option key={option} value={option}>{option}</option>
+                ))}
+              </select>
             </div>
             <div className="flex items-end">
               <button onClick={loadReport} className="btn-secondary">Load Report</button>
