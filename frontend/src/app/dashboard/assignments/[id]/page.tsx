@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { getUser, getAssignment, getSubmissionsForAssignment, getMySubmission, submitAssignment, gradeSubmission } from '@/lib/api'
 import toast from 'react-hot-toast'
-import { Upload, X, FileText, Download, AlertTriangle, CheckCircle, Clock, ArrowLeft } from 'lucide-react'
+import { Upload, X, FileText, Download, AlertTriangle, CheckCircle, Clock, ArrowLeft, ChevronDown, ChevronUp, MessageSquare } from 'lucide-react'
 import Link from 'next/link'
 import { format } from 'date-fns'
 
@@ -19,6 +19,7 @@ export default function AssignmentDetailPage() {
   const [files, setFiles] = useState<File[]>([])
   const [gradingId, setGradingId] = useState<string | null>(null)
   const [gradeForm, setGradeForm] = useState({ marks: '', feedback: '' })
+  const [openSubmissionId, setOpenSubmissionId] = useState<string | null>(null)
 
   useEffect(() => {
     const u = getUser()
@@ -212,7 +213,50 @@ export default function AssignmentDetailPage() {
                     </div>
                   </div>
 
-                  {s.content && <p className="text-sm text-slate-300 mt-2 line-clamp-2">{s.content}</p>}
+                  <div className="mt-3 flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setOpenSubmissionId(curr => curr === s.id ? null : s.id)}
+                      className="btn-secondary py-1.5 text-sm"
+                    >
+                      <MessageSquare size={14} />
+                      {openSubmissionId === s.id ? 'Hide Submission' : 'Review Submission'}
+                    </button>
+                    {s.files?.length > 0 && (
+                      <span className="text-xs text-slate-400">{s.files.length} attachment{s.files.length !== 1 ? 's' : ''}</span>
+                    )}
+                  </div>
+
+                  {openSubmissionId === s.id && (
+                    <div className="mt-3 space-y-3">
+                      <div className="rounded-xl border border-[var(--border)] p-4" style={{ background: 'var(--surface-800)' }}>
+                        <div className="text-xs uppercase tracking-wider text-slate-500 mb-2">Written Answer</div>
+                        {s.content ? (
+                          <p className="text-sm text-slate-200 whitespace-pre-wrap leading-relaxed">{s.content}</p>
+                        ) : (
+                          <p className="text-sm text-slate-500">No written answer submitted.</p>
+                        )}
+                      </div>
+
+                      {s.files?.length > 0 && (
+                        <div className="space-y-2">
+                          <div className="text-xs uppercase tracking-wider text-slate-500">Attachments</div>
+                          {s.files.map((f: any) => (
+                            <a
+                              key={f.id}
+                              href={f.path}
+                              download={f.name}
+                              className="flex items-center gap-2 rounded-lg border border-[var(--border)] px-3 py-2 text-sm text-slate-300 hover:text-white"
+                              style={{ background: 'var(--surface-800)' }}
+                            >
+                              <Download size={14} className="text-indigo-400" />
+                              <span className="truncate">{f.name}</span>
+                            </a>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {s.status === 'graded' ? (
                     <div className="mt-3 flex items-center gap-2 text-sm">

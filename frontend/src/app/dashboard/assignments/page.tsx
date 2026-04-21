@@ -1,12 +1,14 @@
 'use client'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { getUser, getAssignments, deleteAssignment, updateAssignmentStatus } from '@/lib/api'
 import toast from 'react-hot-toast'
 import { Plus, FileText, Trash2, Eye, ToggleLeft, ToggleRight, AlertTriangle, Download } from 'lucide-react'
 import { format, formatDistanceToNow } from 'date-fns'
 
 export default function AssignmentsPage() {
+  const router = useRouter()
   const [user, setUser] = useState<any>(null)
   const [assignments, setAssignments] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -100,7 +102,11 @@ export default function AssignmentsPage() {
               : `Due in ${formatDistanceToNow(due)}`
 
             return (
-              <div key={a.id} className="card p-5 hover:border-indigo-500/30 transition-colors group">
+              <div
+                key={a.id}
+                onClick={() => router.push(`/dashboard/assignments/${a.id}`)}
+                className="card group cursor-pointer p-5 transition-colors hover:border-indigo-500/30"
+              >
                 <div className="flex items-start gap-4">
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
                     style={{ background: 'rgba(99,102,241,0.15)' }}>
@@ -129,6 +135,7 @@ export default function AssignmentsPage() {
                       <div className="flex gap-2 mt-2 flex-wrap">
                         {a.attachments.map((f: any) => (
                           <a key={f.id} href={f.path} download={f.name}
+                            onClick={e => e.stopPropagation()}
                             className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs text-indigo-400 hover:text-indigo-300 border border-indigo-500/20 hover:border-indigo-500/50 transition-colors"
                             style={{ background: 'rgba(99,102,241,0.08)' }}>
                             <Download size={11} /> {f.name}
@@ -140,16 +147,17 @@ export default function AssignmentsPage() {
 
                   <div className="flex items-center gap-1 flex-shrink-0">
                     <Link href={`/dashboard/assignments/${a.id}`}
+                      onClick={e => e.stopPropagation()}
                       className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-[var(--surface-700)] transition-all">
                       <Eye size={16} />
                     </Link>
                     {isTeacher && (
                       <>
-                        <button onClick={() => handleToggleStatus(a)}
+                        <button onClick={e => { e.stopPropagation(); handleToggleStatus(a) }}
                           className="p-2 rounded-lg text-slate-400 hover:text-indigo-400 hover:bg-indigo-400/10 transition-all">
                           {a.status === 'published' ? <ToggleRight size={16} /> : <ToggleLeft size={16} />}
                         </button>
-                        <button onClick={() => handleDelete(a.id)}
+                        <button onClick={e => { e.stopPropagation(); handleDelete(a.id) }}
                           className="p-2 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-400/10 transition-all">
                           <Trash2 size={16} />
                         </button>
