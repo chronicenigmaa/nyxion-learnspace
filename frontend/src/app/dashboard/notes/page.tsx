@@ -66,8 +66,8 @@ export default function NotesPage() {
   async function handleDownload(file: any) {
     try {
       await downloadProtectedFile(file.download_url || file.path, file.name)
-    } catch {
-      toast.error('Failed to download file')
+    } catch (err: any) {
+      toast.error(err?.message || 'Failed to download file')
     }
   }
 

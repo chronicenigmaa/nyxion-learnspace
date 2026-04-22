@@ -76,8 +76,22 @@ export const buildApiFileUrl = (path: string) => {
 
 export const downloadProtectedFile = async (path: string, filename?: string) => {
   const url = buildApiFileUrl(path)
-  const response = await api.get(url, { responseType: 'blob' })
-  const blobUrl = window.URL.createObjectURL(response.data)
+  const token = getToken()
+  const response = await fetch(url, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  })
+
+  if (!response.ok) {
+    let detail = `Download failed (${response.status})`
+    try {
+      const data = await response.json()
+      detail = data?.detail || detail
+    } catch {}
+    throw new Error(detail)
+  }
+
+  const blob = await response.blob()
+  const blobUrl = window.URL.createObjectURL(blob)
   const link = document.createElement('a')
   link.href = blobUrl
   link.download = filename || 'download'
