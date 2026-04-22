@@ -4,12 +4,32 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import List, Optional
-from datetime import date
 from app.db.database import get_db
-from app.models.models import Attendance, User, Role, Submission, Assignment
+from app.models.models import Attendance, User, Role
 from app.core.security import get_current_user, hash_password
 
 router = APIRouter()
+
+
+def resolve_student_identity_ids(db: Session, current_user: User) -> list:
+    user_ids = {current_user.id}
+
+    if current_user.roll_number:
+        matches = db.query(User.id).filter(
+            User.role == Role.student,
+            User.roll_number == current_user.roll_number,
+        ).all()
+        user_ids.update(match[0] for match in matches)
+
+    elif current_user.class_name and current_user.name:
+        matches = db.query(User.id).filter(
+            User.role == Role.student,
+            User.class_name == current_user.class_name,
+            User.name == current_user.name,
+        ).all()
+        user_ids.update(match[0] for match in matches)
+
+    return list(user_ids)
 
 
 class AttendanceRecord(BaseModel):
@@ -114,7 +134,8 @@ def get_class_attendance(class_name: str, start_date: Optional[str] = None, end_
 
 @router.get("/my")
 def get_my_attendance(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    records = db.query(Attendance).filter(Attendance.student_id == current_user.id).all()
+    student_ids = resolve_student_identity_ids(db, current_user)
+    records = db.query(Attendance).filter(Attendance.student_id.in_(student_ids)).all()
     present = sum(1 for r in records if r.is_present)
     total = len(records)
     return {

@@ -7,12 +7,34 @@ from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.models.models import Note, User, Role
 from app.core.security import get_current_user
-from fastapi.responses import FileResponse
 
 router = APIRouter()
 
 UPLOAD_DIR = "/uploads/notes"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+
+def build_class_aliases(class_name: str | None) -> set[str]:
+    raw = str(class_name or "").strip()
+    if not raw:
+        return set()
+
+    aliases = {raw}
+    compact = raw.lower().replace("class", "").replace(" ", "").replace("-", "")
+    if not compact:
+        return aliases
+
+    suffix = compact[-1].upper() if compact[-1].isalpha() else ""
+    base = compact[:-1] if suffix else compact
+    aliases.add(compact.upper())
+    aliases.add(f"Class {compact.upper()}")
+    if base.isdigit():
+        aliases.add(base)
+        aliases.add(f"Class {base}")
+        if suffix:
+            aliases.add(f"{base}{suffix}")
+            aliases.add(f"Class {base}{suffix}")
+    return aliases
 
 
 def serialize_note(n: Note):
@@ -34,7 +56,10 @@ def list_notes(db: Session = Depends(get_db), current_user: User = Depends(get_c
     if current_user.role == Role.teacher:
         notes = db.query(Note).filter(Note.teacher_id == current_user.id).all()
     elif current_user.role == Role.student:
-        notes = db.query(Note).filter(Note.class_name == current_user.class_name).all()
+        aliases = build_class_aliases(current_user.class_name)
+        if not aliases:
+            return []
+        notes = db.query(Note).filter(Note.class_name.in_(aliases)).all()
     else:
         notes = db.query(Note).all()
     return [serialize_note(n) for n in notes]

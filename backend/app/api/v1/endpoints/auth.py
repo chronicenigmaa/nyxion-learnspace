@@ -1,5 +1,6 @@
 import json
 import os
+import uuid
 from urllib import error, request as urllib_request
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -7,7 +8,7 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from jose import JWTError, jwt
 from app.db.database import get_db
-from app.models.models import User, Role
+from app.models.models import User, Role, Assignment, Attendance, Exam, ExamAttempt, Note, Submission
 from datetime import timedelta
 from app.core.security import verify_password, hash_password, create_access_token, get_current_user, SECRET_KEY, ALGORITHM
 
@@ -64,6 +65,63 @@ def normalize_role(role: str | None) -> Role:
     return Role.student
 
 
+def normalize_student_class_name(class_name: str | None, section: str | None = None) -> str | None:
+    raw_class = str(class_name or "").strip()
+    raw_section = str(section or "").strip().upper()
+    if not raw_class:
+        return None
+
+    compact = raw_class.lower().replace("class", "").replace(" ", "").replace("-", "")
+    if raw_section and compact.endswith(raw_section.lower()):
+        compact = compact[:-len(raw_section)]
+
+    if compact.isdigit():
+        return f"Class {compact}{raw_section}"
+
+    if raw_class.lower().startswith("class "):
+        return raw_class
+
+    if raw_section:
+        return f"Class {raw_class}{raw_section}"
+
+    return raw_class
+
+
+def reassign_user_records(db: Session, source_user_id, target_user_id) -> None:
+    db.query(Submission).filter(Submission.student_id == source_user_id).update(
+        {Submission.student_id: target_user_id},
+        synchronize_session=False,
+    )
+    db.query(Attendance).filter(Attendance.student_id == source_user_id).update(
+        {Attendance.student_id: target_user_id},
+        synchronize_session=False,
+    )
+    db.query(ExamAttempt).filter(ExamAttempt.student_id == source_user_id).update(
+        {ExamAttempt.student_id: target_user_id},
+        synchronize_session=False,
+    )
+    db.query(Assignment).filter(Assignment.teacher_id == source_user_id).update(
+        {Assignment.teacher_id: target_user_id},
+        synchronize_session=False,
+    )
+    db.query(Note).filter(Note.teacher_id == source_user_id).update(
+        {Note.teacher_id: target_user_id},
+        synchronize_session=False,
+    )
+    db.query(Exam).filter(Exam.teacher_id == source_user_id).update(
+        {Exam.teacher_id: target_user_id},
+        synchronize_session=False,
+    )
+    db.query(Attendance).filter(Attendance.marked_by == source_user_id).update(
+        {Attendance.marked_by: target_user_id},
+        synchronize_session=False,
+    )
+    db.query(Submission).filter(Submission.graded_by == source_user_id).update(
+        {Submission.graded_by: target_user_id},
+        synchronize_session=False,
+    )
+
+
 def issue_token_response(user: User) -> TokenResponse:
     token = create_access_token({
         "sub": str(user.id),
@@ -92,16 +150,38 @@ def sync_user_from_identity(
     class_name: str | None = None,
     subject: str | None = None,
     roll_number: str | None = None,
+    external_user_id: str | None = None,
 ) -> User:
-    user = db.query(User).filter(User.email == email).first()
+    normalized_role = normalize_role(role)
+    external_uuid = None
+    if normalized_role == Role.student and external_user_id:
+        try:
+            external_uuid = uuid.UUID(str(external_user_id))
+        except (ValueError, TypeError):
+            external_uuid = None
+
+    user = db.query(User).filter(User.id == external_uuid).first() if external_uuid else None
+    email_user = db.query(User).filter(User.email == email).first()
+
+    if user and email_user and email_user.id != user.id:
+        reassign_user_records(db, email_user.id, user.id)
+        db.delete(email_user)
+        db.flush()
+    elif not user:
+        user = email_user
+
     if not user:
-        user = User(email=email, password_hash=hash_password(password or email))
+        user = User(
+            id=external_uuid or None,
+            email=email,
+            password_hash=hash_password(password or email),
+        )
         db.add(user)
 
     user.name = name or user.name or email.split("@")[0].replace(".", " ").title()
     if password:
         user.password_hash = hash_password(password)
-    user.role = normalize_role(role)
+    user.role = normalized_role
     user.school_id = school_id or user.school_id
     user.class_name = class_name or user.class_name
     user.subject = subject or user.subject
@@ -150,9 +230,13 @@ def login(req: LoginRequest, db: Session = Depends(get_db)):
             name=eduos_user.get("full_name") or eduos_user.get("name"),
             role=eduos_user.get("role"),
             school_id=eduos_user.get("school_id"),
-            class_name=eduos_user.get("class_name") or eduos_user.get("class"),
+            class_name=normalize_student_class_name(
+                eduos_user.get("class_name") or eduos_user.get("class"),
+                eduos_user.get("section"),
+            ),
             subject=eduos_user.get("subject"),
             roll_number=eduos_user.get("roll_number"),
+            external_user_id=eduos_user.get("id"),
         )
         token = create_access_token({
             "sub": str(synced_user.id),
@@ -202,9 +286,13 @@ def sso_login(req: SSORequest, db: Session = Depends(get_db)):
         name=payload.get("name"),
         role=payload.get("role"),
         school_id=payload.get("school_id"),
+        external_user_id=payload.get("sub"),
     )
     user.subject = payload.get("subject") or user.subject
-    user.class_name = payload.get("class_name") or user.class_name
+    user.class_name = normalize_student_class_name(
+        payload.get("class_name") or user.class_name,
+        payload.get("section"),
+    ) or user.class_name
     user.roll_number = payload.get("roll_number") or user.roll_number
     db.commit()
     db.refresh(user)
