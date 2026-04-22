@@ -188,9 +188,33 @@ def seed_demo(db: Session = Depends(get_db)):
                     db.add(sub)
     db.commit()
 
-    # ── ATTENDANCE (last 30 days)
+    # ── NOTES / SLIDES
+    notes_data = [
+        {"title": "Algebra — Chapter 5 Slides",        "subject": "Mathematics", "class_name": "Class 9A",  "teacher": teachers[0], "desc": "Lecture slides covering quadratic expressions, factorisation and solving linear equations."},
+        {"title": "Quadratic Equations Reference Sheet","subject": "Mathematics", "class_name": "Class 9B",  "teacher": teachers[0], "desc": "Summary sheet of all quadratic formula derivations and worked examples."},
+        {"title": "Newton's Laws — Lecture Notes",      "subject": "Physics",     "class_name": "Class 9A",  "teacher": teachers[1], "desc": "Complete notes on Newton's three laws of motion with real-world applications."},
+        {"title": "Wave Motion Diagrams",               "subject": "Physics",     "class_name": "Class 10A", "teacher": teachers[1], "desc": "Illustrated notes on transverse and longitudinal waves, frequency and amplitude."},
+        {"title": "Essay Writing Guide",                "subject": "English",     "class_name": "Class 9A",  "teacher": teachers[2], "desc": "Step-by-step guide to writing argumentative and descriptive essays."},
+        {"title": "Grammar Unit 4 — Notes",             "subject": "English",     "class_name": "Class 9B",  "teacher": teachers[2], "desc": "Detailed notes on tenses, conditionals and reported speech."},
+        {"title": "Periodic Table — Study Guide",       "subject": "Chemistry",   "class_name": "Class 10A", "teacher": teachers[3], "desc": "Annotated periodic table with element groups, periods and trends explained."},
+        {"title": "Organic Chemistry — Reaction Types", "subject": "Chemistry",   "class_name": "Class 9A",  "teacher": teachers[3], "desc": "Notes on addition, substitution and elimination reactions with diagrams."},
+        {"title": "Cell Division — Mitosis & Meiosis",  "subject": "Biology",     "class_name": "Class 9B",  "teacher": teachers[4], "desc": "Stage-by-stage explanation of cell division with labelled diagrams."},
+        {"title": "Photosynthesis — Process Notes",     "subject": "Biology",     "class_name": "Class 10A", "teacher": teachers[4], "desc": "Light-dependent and light-independent reactions explained with flow diagrams."},
+    ]
+    for n in notes_data:
+        existing = db.query(Note).filter(Note.title == n["title"], Note.class_name == n["class_name"]).first()
+        if not existing:
+            note = Note(
+                title=n["title"], description=n["desc"],
+                subject=n["subject"], class_name=n["class_name"],
+                teacher_id=n["teacher"].id, files=[],
+            )
+            db.add(note)
+    db.commit()
+
+    # ── ATTENDANCE (last 60 days)
     all_classes = list(set(s.class_name for s in students))
-    for i in range(30):
+    for i in range(60):
         day = now - timedelta(days=i)
         if day.weekday() >= 5:  # skip weekends
             continue
@@ -267,6 +291,7 @@ def seed_demo(db: Session = Depends(get_db)):
             "teachers": len(teachers_data),
             "students": len(students_data),
             "assignments": len(assignments_data),
+            "notes": len(notes_data),
             "events": len(events_data),
         }
     }
