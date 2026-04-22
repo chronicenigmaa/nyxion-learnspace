@@ -36,6 +36,10 @@ export const ssoLogin = (token: string) =>
   api.post('/api/v1/auth/sso', { token })
 
 export const getMe = () => api.get('/api/v1/auth/me')
+export const forgotPassword = (email: string) =>
+  api.post('/api/v1/auth/forgot-password', { email })
+export const resetPassword = (token: string, new_password: string) =>
+  api.post('/api/v1/auth/reset-password', { token, new_password })
 
 // Assignments
 export const getAssignments = () => api.get('/api/v1/assignments/')
@@ -44,6 +48,8 @@ export const createAssignment = (data: FormData) =>
   api.post('/api/v1/assignments/', data)
 export const updateAssignmentStatus = (id: string, status: string) =>
   api.patch(`/api/v1/assignments/${id}/status?status=${status}`)
+export const updateAssignment = (id: string, data: FormData) =>
+  api.put(`/api/v1/assignments/${id}`, data)
 export const deleteAssignment = (id: string) => api.delete(`/api/v1/assignments/${id}`)
 
 // Submissions

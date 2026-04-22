@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { getUser, getAssignments, deleteAssignment, updateAssignmentStatus } from '@/lib/api'
 import toast from 'react-hot-toast'
-import { Plus, FileText, Trash2, Eye, ToggleLeft, ToggleRight, AlertTriangle, Download } from 'lucide-react'
+import { Plus, FileText, Trash2, Eye, ToggleLeft, ToggleRight, AlertTriangle, Download, Pencil } from 'lucide-react'
 import { format, formatDistanceToNow } from 'date-fns'
 
 export default function AssignmentsPage() {
@@ -153,6 +153,11 @@ export default function AssignmentsPage() {
                     </Link>
                     {isTeacher && (
                       <>
+                        <Link href={`/dashboard/assignments/edit/${a.id}`}
+                          onClick={e => e.stopPropagation()}
+                          className="p-2 rounded-lg text-slate-400 hover:text-amber-400 hover:bg-amber-400/10 transition-all">
+                          <Pencil size={16} />
+                        </Link>
                         <button onClick={e => { e.stopPropagation(); handleToggleStatus(a) }}
                           className="p-2 rounded-lg text-slate-400 hover:text-indigo-400 hover:bg-indigo-400/10 transition-all">
                           {a.status === 'published' ? <ToggleRight size={16} /> : <ToggleLeft size={16} />}

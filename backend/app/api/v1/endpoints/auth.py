@@ -8,6 +8,7 @@ from pydantic import BaseModel
 from jose import JWTError, jwt
 from app.db.database import get_db
 from app.models.models import User, Role
+from datetime import timedelta
 from app.core.security import verify_password, hash_password, create_access_token, get_current_user, SECRET_KEY, ALGORITHM
 
 router = APIRouter()
@@ -40,6 +41,15 @@ class TokenResponse(BaseModel):
 
 class SSORequest(BaseModel):
     token: str
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str
 
 
 def is_eduos_managed_email(email: str | None) -> bool:
@@ -243,3 +253,41 @@ def me(current_user: User = Depends(get_current_user)):
         "roll_number": current_user.roll_number,
         "avatar_color": current_user.avatar_color,
     }
+
+
+@router.post("/forgot-password")
+def forgot_password(req: ForgotPasswordRequest, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == req.email).first()
+    if not user:
+        return {"message": "If that email is registered, a reset token has been generated."}
+
+    reset_token = create_access_token(
+        {"sub": str(user.id), "email": user.email, "type": "password_reset"},
+        expires_delta=timedelta(hours=1),
+    )
+    return {
+        "message": "Password reset token generated. Use it within 1 hour.",
+        "reset_token": reset_token,
+    }
+
+
+@router.post("/reset-password")
+def reset_password(req: ResetPasswordRequest, db: Session = Depends(get_db)):
+    try:
+        payload = jwt.decode(req.token, SECRET_KEY, algorithms=[ALGORITHM])
+    except JWTError:
+        raise HTTPException(status_code=400, detail="Invalid or expired reset token")
+
+    if payload.get("type") != "password_reset":
+        raise HTTPException(status_code=400, detail="Invalid token type")
+
+    if len(req.new_password) < 6:
+        raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
+
+    user = db.query(User).filter(User.id == payload.get("sub")).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    user.password_hash = hash_password(req.new_password)
+    db.commit()
+    return {"message": "Password reset successfully. You can now log in with your new password."}

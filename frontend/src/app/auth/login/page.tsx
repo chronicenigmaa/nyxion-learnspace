@@ -5,6 +5,7 @@ import toast from 'react-hot-toast'
 import { login } from '@/lib/api'
 import NyxionLogo from '@/components/ui/NyxionLogo'
 import { Eye, EyeOff, GraduationCap, BookOpen, ShieldCheck } from 'lucide-react'
+import Link from 'next/link'
 
 type Portal = 'student' | 'teacher' | 'admin'
 
@@ -147,7 +148,12 @@ export default function LoginPage() {
               </p>
             </div>
             <div>
-              <label className="label">Password</label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="label mb-0">Password</label>
+                <Link href="/auth/forgot-password" className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors">
+                  Forgot password?
+                </Link>
+              </div>
               <div className="relative">
                 <input
                   type={showPass ? 'text' : 'password'}
