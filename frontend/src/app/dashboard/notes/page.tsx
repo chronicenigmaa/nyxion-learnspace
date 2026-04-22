@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { getUser, getMe, getNotes, uploadNotes, deleteNote, buildApiFileUrl } from '@/lib/api'
+import { getUser, getMe, getNotes, uploadNotes, deleteNote, downloadProtectedFile } from '@/lib/api'
 import toast from 'react-hot-toast'
 import { BookOpen, Upload, Trash2, Download, FileText, Plus, X, AlertTriangle } from 'lucide-react'
 import { format } from 'date-fns'
@@ -61,6 +61,14 @@ export default function NotesPage() {
   async function handleDelete(id: string) {
     if (!confirm('Delete this note?')) return
     try { await deleteNote(id); toast.success('Deleted'); load() } catch { toast.error('Failed') }
+  }
+
+  async function handleDownload(file: any) {
+    try {
+      await downloadProtectedFile(file.download_url || file.path, file.name)
+    } catch {
+      toast.error('Failed to download file')
+    }
   }
 
   const isTeacher = user?.role === 'teacher' || user?.role === 'school_admin'
@@ -217,14 +225,14 @@ export default function NotesPage() {
               {/* Files */}
               <div className="mt-3 space-y-1.5">
                 {(note.files || []).map((f: any) => (
-                  <a key={f.id} href={buildApiFileUrl(f.path)} download={f.name}
+                  <button key={f.id} type="button" onClick={() => handleDownload(f)}
                     className="flex items-center gap-2 p-2 rounded-lg hover:bg-[var(--surface-600)] transition-colors group"
                     style={{ background: 'var(--surface-700)' }}>
                     <span className="text-base">{fileIcon(f.name)}</span>
                     <span className="text-sm text-slate-300 flex-1 truncate group-hover:text-white">{f.name}</span>
                     {f.size && <span className="text-xs text-slate-500">{fileSize(f.size)}</span>}
                     <Download size={12} className="text-slate-500 group-hover:text-indigo-400" />
-                  </a>
+                  </button>
                 ))}
               </div>
             </div>

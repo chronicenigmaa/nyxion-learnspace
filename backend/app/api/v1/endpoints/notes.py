@@ -3,6 +3,7 @@ import os
 import shutil
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.models.models import Note, User, Role
@@ -76,6 +77,12 @@ def build_class_aliases(class_name: str | None) -> set[str]:
 
 
 def serialize_note(n: Note):
+    files = []
+    for file in (n.files or []):
+        files.append({
+            **file,
+            "download_url": f"/api/v1/notes/{n.id}/files/{file.get('id')}/download" if file.get("id") else None,
+        })
     return {
         "id": str(n.id),
         "title": n.title,
@@ -84,7 +91,7 @@ def serialize_note(n: Note):
         "class_name": n.class_name,
         "teacher_id": str(n.teacher_id),
         "teacher_name": n.teacher.name if n.teacher else None,
-        "files": n.files or [],
+        "files": files,
         "created_at": n.created_at.isoformat(),
     }
 
@@ -158,3 +165,41 @@ def delete_note(note_id: uuid.UUID, db: Session = Depends(get_db), current_user:
     db.delete(note)
     db.commit()
     return {"message": "Deleted"}
+
+
+@router.get("/{note_id}/files/{file_id}/download")
+def download_note_file(
+    note_id: uuid.UUID,
+    file_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    note = db.query(Note).filter(Note.id == note_id).first()
+    if not note:
+        raise HTTPException(status_code=404, detail="Note not found")
+
+    if current_user.role == Role.teacher and note.teacher_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not allowed")
+    if current_user.role == Role.student:
+        class_name = resolve_student_class_name(db, current_user)
+        if note.class_name not in build_class_aliases(class_name):
+            raise HTTPException(status_code=403, detail="Not allowed")
+
+    note_file = next((f for f in (note.files or []) if f.get("id") == file_id), None)
+    if not note_file:
+        raise HTTPException(status_code=404, detail="File not found")
+
+    stored_path = str(note_file.get("path") or "").strip()
+    filename = os.path.basename(stored_path)
+    if not filename:
+        raise HTTPException(status_code=404, detail="File not found")
+
+    absolute_path = os.path.join(UPLOAD_DIR, filename)
+    if not os.path.exists(absolute_path):
+        raise HTTPException(status_code=404, detail="File not found")
+
+    return FileResponse(
+        absolute_path,
+        filename=note_file.get("name") or filename,
+        media_type="application/octet-stream",
+    )

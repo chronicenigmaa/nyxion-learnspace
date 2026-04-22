@@ -74,6 +74,19 @@ export const buildApiFileUrl = (path: string) => {
   return `${API_BASE}${path}`
 }
 
+export const downloadProtectedFile = async (path: string, filename?: string) => {
+  const url = buildApiFileUrl(path)
+  const response = await api.get(url, { responseType: 'blob' })
+  const blobUrl = window.URL.createObjectURL(response.data)
+  const link = document.createElement('a')
+  link.href = blobUrl
+  link.download = filename || 'download'
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  window.URL.revokeObjectURL(blobUrl)
+}
+
 // Exams
 export const getExams = () => api.get('/api/v1/exams/')
 export const createExam = (data: any) => api.post('/api/v1/exams/', data)
