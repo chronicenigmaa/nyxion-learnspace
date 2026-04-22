@@ -142,19 +142,35 @@ export default function AssignmentDetailPage() {
                 </div>
                 {mySubmission.feedback && <p className="text-slate-300 text-sm mt-2">{mySubmission.feedback}</p>}
               </div>
-              {mySubmission.plagiarism_score > 40 && (
-                <div className="p-3 rounded-lg border border-yellow-500/30 flex items-center gap-2" style={{ background: 'rgba(245,158,11,0.1)' }}>
-                  <AlertTriangle size={14} className="text-yellow-400" />
-                  <span className="text-yellow-400 text-sm">Similarity: {mySubmission.plagiarism_score}%</span>
+              {(mySubmission.plagiarism_score ?? 0) > 0 && (
+                <div className={`p-3 rounded-lg border flex items-center gap-2 ${mySubmission.plagiarism_score > 60 ? 'border-red-500/30' : 'border-yellow-500/30'}`}
+                  style={{ background: mySubmission.plagiarism_score > 60 ? 'rgba(239,68,68,0.1)' : 'rgba(245,158,11,0.1)' }}>
+                  <AlertTriangle size={14} className={mySubmission.plagiarism_score > 60 ? 'text-red-400' : 'text-yellow-400'} />
+                  <span className={`text-sm ${mySubmission.plagiarism_score > 60 ? 'text-red-400' : 'text-yellow-400'}`}>
+                    Similarity score: {mySubmission.plagiarism_score}%
+                    {mySubmission.plagiarism_score > 60 ? ' — flagged for review' : ' — within acceptable range'}
+                  </span>
                 </div>
               )}
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
               {mySubmission && (
-                <div className="p-3 rounded-lg border border-indigo-500/30 text-sm text-indigo-300"
-                  style={{ background: 'rgba(99,102,241,0.1)' }}>
-                  ✓ Already submitted on {format(new Date(mySubmission.submitted_at), 'MMM d, h:mm a')} — you can re-submit
+                <div className="space-y-2">
+                  <div className="p-3 rounded-lg border border-indigo-500/30 text-sm text-indigo-300"
+                    style={{ background: 'rgba(99,102,241,0.1)' }}>
+                    ✓ Already submitted on {format(new Date(mySubmission.submitted_at), 'MMM d, h:mm a')} — you can re-submit
+                  </div>
+                  {(mySubmission.plagiarism_score ?? 0) > 0 && (
+                    <div className={`p-3 rounded-lg border flex items-center gap-2 ${mySubmission.plagiarism_score > 60 ? 'border-red-500/30' : 'border-yellow-500/30'}`}
+                      style={{ background: mySubmission.plagiarism_score > 60 ? 'rgba(239,68,68,0.1)' : 'rgba(245,158,11,0.1)' }}>
+                      <AlertTriangle size={14} className={mySubmission.plagiarism_score > 60 ? 'text-red-400' : 'text-yellow-400'} />
+                      <span className={`text-sm ${mySubmission.plagiarism_score > 60 ? 'text-red-400' : 'text-yellow-400'}`}>
+                        Similarity score: {mySubmission.plagiarism_score}%
+                        {mySubmission.plagiarism_score > 60 ? ' — high similarity detected' : ''}
+                      </span>
+                    </div>
+                  )}
                 </div>
               )}
               <div>
@@ -229,6 +245,7 @@ export default function AssignmentDetailPage() {
 
                   {openSubmissionId === s.id && (
                     <div className="mt-3 space-y-3">
+                      {/* Written answer */}
                       <div className="rounded-xl border border-[var(--border)] p-4" style={{ background: 'var(--surface-800)' }}>
                         <div className="text-xs uppercase tracking-wider text-slate-500 mb-2">Written Answer</div>
                         {s.content ? (
@@ -238,6 +255,64 @@ export default function AssignmentDetailPage() {
                         )}
                       </div>
 
+                      {/* Plagiarism report */}
+                      {s.content && (
+                        <div className={`rounded-xl border p-4 ${
+                          s.plagiarism_report?.flagged
+                            ? 'border-red-500/40'
+                            : s.plagiarism_score > 0
+                            ? 'border-yellow-500/30'
+                            : 'border-[var(--border)]'
+                        }`} style={{ background: s.plagiarism_report?.flagged ? 'rgba(239,68,68,0.07)' : s.plagiarism_score > 0 ? 'rgba(245,158,11,0.07)' : 'var(--surface-800)' }}>
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <AlertTriangle size={14} className={s.plagiarism_report?.flagged ? 'text-red-400' : s.plagiarism_score > 0 ? 'text-yellow-400' : 'text-slate-500'} />
+                              <span className="text-xs uppercase tracking-wider font-semibold text-slate-400">Plagiarism Report</span>
+                            </div>
+                            <div className={`text-lg font-bold ${
+                              s.plagiarism_report?.flagged ? 'text-red-400' : s.plagiarism_score > 0 ? 'text-yellow-400' : 'text-slate-500'
+                            }`}>
+                              {s.plagiarism_score ?? 0}%
+                              <span className="text-xs font-normal ml-1 text-slate-400">similarity</span>
+                            </div>
+                          </div>
+
+                          {/* Score bar */}
+                          <div className="h-2 rounded-full mb-3 overflow-hidden" style={{ background: 'var(--surface-600)' }}>
+                            <div className="h-full rounded-full transition-all" style={{
+                              width: `${Math.min(s.plagiarism_score ?? 0, 100)}%`,
+                              background: s.plagiarism_report?.flagged ? '#ef4444' : s.plagiarism_score > 0 ? '#f59e0b' : '#6366f1'
+                            }} />
+                          </div>
+
+                          {s.plagiarism_report?.matches?.length > 0 ? (
+                            <div className="space-y-1">
+                              <div className="text-xs text-slate-500 mb-1">Matched submissions:</div>
+                              {s.plagiarism_report.matches.map((m: any, i: number) => {
+                                const matchedSub = submissions.find((x: any) => x.student_id === m.student_id)
+                                return (
+                                  <div key={i} className="flex items-center justify-between text-xs px-2 py-1 rounded" style={{ background: 'var(--surface-700)' }}>
+                                    <span className="text-slate-300">{matchedSub?.student_name ?? `Student ${m.student_id.slice(0, 8)}`}</span>
+                                    <span className={`font-semibold ${m.similarity > 60 ? 'text-red-400' : 'text-yellow-400'}`}>{m.similarity}% match</span>
+                                  </div>
+                                )
+                              })}
+                            </div>
+                          ) : (
+                            <p className="text-xs text-slate-500">
+                              {s.plagiarism_score === 0 ? 'No matches found against other submissions.' : 'Below threshold — no flagged matches.'}
+                            </p>
+                          )}
+
+                          {s.plagiarism_report?.flagged && (
+                            <div className="mt-2 text-xs text-red-400 font-medium">
+                              Flagged for high similarity — review before grading.
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Attachments */}
                       {s.files?.length > 0 && (
                         <div className="space-y-2">
                           <div className="text-xs uppercase tracking-wider text-slate-500">Attachments</div>

@@ -51,10 +51,10 @@ def list_assignments(db: Session = Depends(get_db), current_user: User = Depends
     if current_user.role == Role.teacher:
         assignments = db.query(Assignment).filter(Assignment.teacher_id == current_user.id).all()
     elif current_user.role == Role.student:
-        q = db.query(Assignment).filter(Assignment.status == AssignmentStatus.published)
-        if current_user.class_name:
-            q = q.filter(Assignment.class_name == current_user.class_name)
-        assignments = q.all()
+        assignments = db.query(Assignment).filter(
+            Assignment.class_name == current_user.class_name,
+            Assignment.status == AssignmentStatus.published
+        ).all()
     else:
         assignments = db.query(Assignment).all()
     return [serialize_assignment(a) for a in assignments]
