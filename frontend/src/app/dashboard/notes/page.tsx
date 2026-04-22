@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { getUser, getMe, getNotes, uploadNotes, deleteNote } from '@/lib/api'
+import { getUser, getMe, getNotes, uploadNotes, deleteNote, buildApiFileUrl } from '@/lib/api'
 import toast from 'react-hot-toast'
 import { BookOpen, Upload, Trash2, Download, FileText, Plus, X, AlertTriangle } from 'lucide-react'
 import { format } from 'date-fns'
@@ -217,7 +217,7 @@ export default function NotesPage() {
               {/* Files */}
               <div className="mt-3 space-y-1.5">
                 {(note.files || []).map((f: any) => (
-                  <a key={f.id} href={f.path} download={f.name}
+                  <a key={f.id} href={buildApiFileUrl(f.path)} download={f.name}
                     className="flex items-center gap-2 p-2 rounded-lg hover:bg-[var(--surface-600)] transition-colors group"
                     style={{ background: 'var(--surface-700)' }}>
                     <span className="text-base">{fileIcon(f.name)}</span>

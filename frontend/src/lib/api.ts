@@ -68,6 +68,12 @@ export const uploadNotes = (data: FormData) =>
   api.post('/api/v1/notes/', data, { headers: { 'Content-Type': 'multipart/form-data' } })
 export const deleteNote = (id: string) => api.delete(`/api/v1/notes/${id}`)
 
+export const buildApiFileUrl = (path: string) => {
+  if (!path) return path
+  if (/^https?:\/\//i.test(path)) return path
+  return `${API_BASE}${path}`
+}
+
 // Exams
 export const getExams = () => api.get('/api/v1/exams/')
 export const createExam = (data: any) => api.post('/api/v1/exams/', data)
