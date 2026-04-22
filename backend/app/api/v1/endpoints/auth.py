@@ -9,8 +9,8 @@ from pydantic import BaseModel
 from jose import JWTError, jwt
 from app.db.database import get_db
 from app.models.models import User, Role, Assignment, Attendance, Exam, ExamAttempt, Note, Submission
-from datetime import timedelta
-from app.core.security import verify_password, hash_password, create_access_token, get_current_user, SECRET_KEY, ALGORITHM
+from datetime import datetime, timedelta
+from app.core.security import verify_password, hash_password, create_access_token, get_current_user, SECRET_KEY, ALGORITHM, oauth2_scheme, decode_access_token
 
 router = APIRouter()
 
@@ -218,6 +218,121 @@ def authenticate_with_eduos(email: str, password: str) -> dict | None:
         return None
 
 
+def build_eduos_session_token(app_token: str) -> str | None:
+    eduos_api_url = os.getenv("EDUOS_API_URL", "").rstrip("/")
+    if not eduos_api_url:
+        return None
+
+    try:
+        payload = decode_access_token(app_token)
+    except Exception:
+        return None
+
+    eduos_sub = payload.get("eduos_sub")
+    if not eduos_sub:
+        return None
+
+    return jwt.encode(
+        {
+            "sub": eduos_sub,
+            "school_id": payload.get("school_id"),
+            "role": payload.get("role"),
+            "exp": datetime.utcnow() + timedelta(minutes=10),
+        },
+        SECRET_KEY,
+        algorithm=ALGORITHM,
+    )
+
+
+def fetch_eduos_student_context(app_token: str, current_user: User) -> tuple[str | None, str | None]:
+    eduos_api_url = os.getenv("EDUOS_API_URL", "").rstrip("/")
+    eduos_token = build_eduos_session_token(app_token)
+    if not eduos_api_url or not eduos_token:
+        return None, None
+
+    req = urllib_request.Request(
+        f"{eduos_api_url}/api/v1/students/",
+        headers={"Authorization": f"Bearer {eduos_token}"},
+        method="GET",
+    )
+    try:
+        with urllib_request.urlopen(req, timeout=10) as res:
+            students = json.loads(res.read().decode("utf-8"))
+    except (error.HTTPError, error.URLError, TimeoutError, json.JSONDecodeError):
+        return None, None
+
+    current_user_id = str(current_user.id)
+    for student in students if isinstance(students, list) else []:
+        student_id = str(student.get("id") or "")
+        student_email = str(student.get("email") or "").strip().lower()
+        if student_id != current_user_id and student_email != current_user.email.strip().lower():
+            continue
+        return (
+            normalize_student_class_name(student.get("class_name") or student.get("class"), student.get("section")),
+            student.get("roll_number"),
+        )
+
+    return None, None
+
+
+def infer_student_context_from_local_data(db: Session, current_user: User) -> tuple[str | None, str | None]:
+    if current_user.roll_number:
+        match = db.query(User).filter(
+            User.role == Role.student,
+            User.roll_number == current_user.roll_number,
+            User.id != current_user.id,
+        ).first()
+        if match:
+            return match.class_name, match.roll_number
+
+    match = db.query(User).filter(
+        User.role == Role.student,
+        User.email == current_user.email,
+        User.id != current_user.id,
+    ).first()
+    if match and (match.class_name or match.roll_number):
+        return match.class_name, match.roll_number
+
+    shadow_matches = db.query(User).filter(
+        User.role == Role.student,
+        User.id != current_user.id,
+        User.name == current_user.name,
+    ).all()
+    for match in shadow_matches:
+        if match.roll_number or match.class_name:
+            return match.class_name, match.roll_number
+
+    return None, None
+
+
+def ensure_student_context(db: Session, current_user: User, token: str | None = None) -> User:
+    if current_user.role != Role.student:
+        return current_user
+    if current_user.class_name and current_user.roll_number:
+        return current_user
+
+    class_name, roll_number = (None, None)
+    if token:
+        class_name, roll_number = fetch_eduos_student_context(token, current_user)
+
+    if not class_name and not roll_number:
+        class_name, roll_number = infer_student_context_from_local_data(db, current_user)
+
+    updated = False
+    if class_name and not current_user.class_name:
+        current_user.class_name = class_name
+        updated = True
+    if roll_number and not current_user.roll_number:
+        current_user.roll_number = roll_number
+        updated = True
+
+    if updated:
+        db.commit()
+        db.refresh(current_user)
+
+    return current_user
+
+
 @router.post("/login", response_model=TokenResponse)
 def login(req: LoginRequest, db: Session = Depends(get_db)):
     eduos_managed = is_eduos_managed_email(req.email)
@@ -338,7 +453,12 @@ def register(req: RegisterRequest, db: Session = Depends(get_db)):
 
 
 @router.get("/me")
-def me(current_user: User = Depends(get_current_user)):
+def me(
+    current_user: User = Depends(get_current_user),
+    token: str = Depends(oauth2_scheme),
+    db: Session = Depends(get_db),
+):
+    current_user = ensure_student_context(db, current_user, token)
     return {
         "id": str(current_user.id),
         "name": current_user.name,
