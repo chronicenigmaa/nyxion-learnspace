@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from urllib import error, request as urllib_request
 
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.models.models import User, Role, Submission, Assignment
@@ -211,6 +212,43 @@ def fetch_eduos_teacher_detail(token: str, teacher_id: str):
         "teacher": teacher,
         "assigned_sections": assigned_sections,
         "assigned_students": assigned_students,
+    }
+
+
+class UpdateStudentRequest(BaseModel):
+    class_name: str | None = None
+    roll_number: str | None = None
+
+
+@router.patch("/students/{student_id}")
+def update_student(
+    student_id: str,
+    req: UpdateStudentRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if current_user.role not in [Role.school_admin, Role.super_admin]:
+        raise HTTPException(status_code=403, detail="Admins only")
+    import uuid as uuid_lib
+    try:
+        sid = uuid_lib.UUID(student_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid student id")
+    student = db.query(User).filter(User.id == sid, User.role == Role.student).first()
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    if req.class_name is not None:
+        student.class_name = req.class_name or None
+    if req.roll_number is not None:
+        student.roll_number = req.roll_number or None
+    db.commit()
+    db.refresh(student)
+    return {
+        "id": str(student.id),
+        "name": student.name,
+        "email": student.email,
+        "class_name": student.class_name,
+        "roll_number": student.roll_number,
     }
 
 

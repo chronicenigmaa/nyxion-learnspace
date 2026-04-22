@@ -89,6 +89,9 @@ def sync_user_from_identity(
     name: str | None,
     role: str | None,
     school_id: str | None = None,
+    class_name: str | None = None,
+    subject: str | None = None,
+    roll_number: str | None = None,
 ) -> User:
     user = db.query(User).filter(User.email == email).first()
     if not user:
@@ -100,6 +103,9 @@ def sync_user_from_identity(
         user.password_hash = hash_password(password)
     user.role = normalize_role(role)
     user.school_id = school_id or user.school_id
+    user.class_name = class_name or user.class_name
+    user.subject = subject or user.subject
+    user.roll_number = roll_number or user.roll_number
     user.avatar_color = user.avatar_color or "#6366f1"
     user.is_active = True
 
@@ -144,6 +150,9 @@ def login(req: LoginRequest, db: Session = Depends(get_db)):
             name=eduos_user.get("full_name") or eduos_user.get("name"),
             role=eduos_user.get("role"),
             school_id=eduos_user.get("school_id"),
+            class_name=eduos_user.get("class_name") or eduos_user.get("class"),
+            subject=eduos_user.get("subject"),
+            roll_number=eduos_user.get("roll_number"),
         )
         token = create_access_token({
             "sub": str(synced_user.id),
@@ -161,11 +170,11 @@ def login(req: LoginRequest, db: Session = Depends(get_db)):
             email=synced_user.email
         )
 
-    if eduos_managed:
-        if not os.getenv("EDUOS_API_URL", "").rstrip("/"):
-            raise HTTPException(status_code=503, detail="EduOS login is not configured")
+    # EduOS is configured but returned no match → wrong password on a managed school
+    if eduos_managed and os.getenv("EDUOS_API_URL", "").rstrip("/"):
         raise HTTPException(status_code=401, detail="Invalid EduOS email or password")
 
+    # EduOS not configured, or non-managed email → try local DB
     user = db.query(User).filter(User.email == req.email).first()
     if user and verify_password(req.password, user.password_hash):
         if not user.is_active:

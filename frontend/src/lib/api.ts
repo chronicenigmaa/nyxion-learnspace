@@ -95,6 +95,8 @@ export const getStudentGrades = (id: string) => api.get(`/api/v1/grades/student/
 // Users
 export const getStudents = (className?: string) =>
   api.get('/api/v1/users/students' + (className ? `?class_name=${encodeURIComponent(className)}` : ''))
+export const updateStudent = (id: string, data: { class_name?: string; roll_number?: string }) =>
+  api.patch(`/api/v1/users/students/${id}`, data)
 export const getTeachers = () => api.get('/api/v1/users/teachers')
 export const getTeacherDetail = (id: string) => api.get(`/api/v1/users/teachers/${id}`)
 

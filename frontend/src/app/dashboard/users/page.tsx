@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
-import { GraduationCap, BookOpen, ChevronRight } from 'lucide-react'
-import { getTeachers, getStudents, getUser } from '@/lib/api'
+import { GraduationCap, BookOpen, ChevronRight, Pencil, Check, X } from 'lucide-react'
+import { getTeachers, getStudents, updateStudent, getUser } from '@/lib/api'
 
 type Teacher = {
   id: string
@@ -27,11 +27,16 @@ type Student = {
   roll_number?: string
 }
 
+const CLASS_OPTIONS = ['Class 8A', 'Class 8B', 'Class 9A', 'Class 9B', 'Class 10A', 'Class 10B']
+
 export default function UsersPage() {
   const router = useRouter()
   const [teachers, setTeachers] = useState<Teacher[]>([])
   const [students, setStudents] = useState<Student[]>([])
   const [loading, setLoading] = useState(true)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editForm, setEditForm] = useState({ class_name: '', roll_number: '' })
+  const [saving, setSaving] = useState(false)
   const user = getUser()
   const isAdmin = user?.role === 'school_admin' || user?.role === 'super_admin'
   const studentsByClass = students.reduce<Record<string, Student[]>>((acc, student) => {
@@ -62,6 +67,23 @@ export default function UsersPage() {
       }
     })()
   }, [isAdmin])
+
+  async function handleSaveStudent(id: string) {
+    setSaving(true)
+    try {
+      await updateStudent(id, { class_name: editForm.class_name, roll_number: editForm.roll_number })
+      setStudents(prev => prev.map(s => s.id === id
+        ? { ...s, class_name: editForm.class_name || undefined, roll_number: editForm.roll_number || undefined }
+        : s
+      ))
+      setEditingId(null)
+      toast.success('Student updated')
+    } catch {
+      toast.error('Failed to update student')
+    } finally {
+      setSaving(false)
+    }
+  }
 
   if (!isAdmin) {
     return (
@@ -158,26 +180,68 @@ export default function UsersPage() {
               <tr className="border-b border-[var(--border)] text-left text-slate-400">
                 <th className="pb-3 font-medium">Name</th>
                 <th className="pb-3 font-medium">Email</th>
-                <th className="pb-3 font-medium">Role</th>
                 <th className="pb-3 font-medium">Class</th>
-                <th className="pb-3 font-medium">Section</th>
                 <th className="pb-3 font-medium">Roll No.</th>
+                <th className="pb-3 font-medium w-16"></th>
               </tr>
             </thead>
             <tbody>
               {!loading && students.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="py-4 text-slate-500">No students found.</td>
+                  <td colSpan={5} className="py-4 text-slate-500">No students found.</td>
                 </tr>
               )}
               {students.map((student) => (
                 <tr key={student.id} className="border-b border-[var(--border)]/60 text-slate-200">
-                  <td className="py-3">{student.name}</td>
-                  <td className="py-3">{student.email}</td>
-                  <td className="py-3">Student</td>
-                  <td className="py-3">{student.class_name || '-'}</td>
-                  <td className="py-3">{student.section || '-'}</td>
-                  <td className="py-3">{student.roll_number || '-'}</td>
+                  <td className="py-3 font-medium">{student.name}</td>
+                  <td className="py-3 text-slate-400">{student.email}</td>
+                  <td className="py-2">
+                    {editingId === student.id ? (
+                      <select
+                        className="input py-1 text-xs"
+                        value={editForm.class_name}
+                        onChange={e => setEditForm(f => ({ ...f, class_name: e.target.value }))}
+                      >
+                        <option value="">No class</option>
+                        {CLASS_OPTIONS.map(c => <option key={c} value={c}>{c}</option>)}
+                      </select>
+                    ) : (
+                      <span className={student.class_name ? 'text-white' : 'text-red-400 font-medium'}>
+                        {student.class_name || 'Not assigned'}
+                      </span>
+                    )}
+                  </td>
+                  <td className="py-2">
+                    {editingId === student.id ? (
+                      <input
+                        className="input py-1 text-xs w-24"
+                        placeholder="Roll no."
+                        value={editForm.roll_number}
+                        onChange={e => setEditForm(f => ({ ...f, roll_number: e.target.value }))}
+                      />
+                    ) : (
+                      student.roll_number || '-'
+                    )}
+                  </td>
+                  <td className="py-2">
+                    {editingId === student.id ? (
+                      <div className="flex items-center gap-1">
+                        <button onClick={() => handleSaveStudent(student.id)} disabled={saving}
+                          className="p-1.5 rounded text-green-400 hover:bg-green-400/10 transition-colors">
+                          <Check size={14} />
+                        </button>
+                        <button onClick={() => setEditingId(null)}
+                          className="p-1.5 rounded text-slate-400 hover:bg-slate-400/10 transition-colors">
+                          <X size={14} />
+                        </button>
+                      </div>
+                    ) : (
+                      <button onClick={() => { setEditingId(student.id); setEditForm({ class_name: student.class_name || '', roll_number: student.roll_number || '' }) }}
+                        className="p-1.5 rounded text-slate-400 hover:text-amber-400 hover:bg-amber-400/10 transition-colors">
+                        <Pencil size={14} />
+                      </button>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>
