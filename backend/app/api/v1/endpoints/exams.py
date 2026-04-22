@@ -12,6 +12,79 @@ from app.core.security import get_current_user
 router = APIRouter()
 
 
+def build_class_aliases(class_name: str | None) -> set[str]:
+    raw = str(class_name or "").strip()
+    if not raw:
+        return set()
+
+    aliases = {raw}
+    compact = raw.lower().replace("class", "").replace(" ", "").replace("-", "")
+    if not compact:
+        return aliases
+
+    suffix = compact[-1].upper() if compact[-1].isalpha() else ""
+    base = compact[:-1] if suffix else compact
+    aliases.add(compact.upper())
+    aliases.add(f"Class {compact.upper()}")
+    if base.isdigit():
+        aliases.add(base)
+        aliases.add(f"Class {base}")
+        if suffix:
+            aliases.add(f"{base}{suffix}")
+            aliases.add(f"Class {base}{suffix}")
+    return aliases
+
+
+def resolve_student_identity_ids(db: Session, current_user: User) -> list:
+    user_ids = {current_user.id}
+
+    if current_user.roll_number:
+        matches = db.query(User.id).filter(
+            User.role == Role.student,
+            User.roll_number == current_user.roll_number,
+        ).all()
+        user_ids.update(match[0] for match in matches)
+
+    elif current_user.class_name and current_user.name:
+        matches = db.query(User.id).filter(
+            User.role == Role.student,
+            User.class_name == current_user.class_name,
+            User.name == current_user.name,
+        ).all()
+        user_ids.update(match[0] for match in matches)
+
+    return list(user_ids)
+
+
+def resolve_student_class_name(db: Session, current_user: User) -> str | None:
+    if current_user.class_name:
+        return current_user.class_name
+
+    candidate_ids = resolve_student_identity_ids(db, current_user)
+    matches = db.query(User).filter(User.id.in_(candidate_ids)).all()
+    for match in matches:
+        if match.class_name:
+            return match.class_name
+
+    if current_user.roll_number:
+        match = db.query(User).filter(
+            User.role == Role.student,
+            User.roll_number == current_user.roll_number,
+        ).first()
+        if match and match.class_name:
+            return match.class_name
+
+    if current_user.name:
+        match = db.query(User).filter(
+            User.role == Role.student,
+            User.name == current_user.name,
+        ).first()
+        if match and match.class_name:
+            return match.class_name
+
+    return None
+
+
 class QuestionCreate(BaseModel):
     id: str
     type: str  # mcq, short, long
@@ -73,8 +146,12 @@ def list_exams(db: Session = Depends(get_db), current_user: User = Depends(get_c
     if current_user.role == Role.teacher:
         exams = db.query(Exam).filter(Exam.teacher_id == current_user.id).all()
     elif current_user.role == Role.student:
+        class_name = resolve_student_class_name(db, current_user)
+        aliases = build_class_aliases(class_name)
+        if not aliases:
+            return []
         exams = db.query(Exam).filter(
-            Exam.class_name == current_user.class_name,
+            Exam.class_name.in_(aliases),
             Exam.status.in_([ExamStatus.scheduled, ExamStatus.live])
         ).all()
     else:
@@ -139,10 +216,14 @@ def start_attempt(exam_id: uuid.UUID, db: Session = Depends(get_db), current_use
         raise HTTPException(status_code=404, detail="Exam not found")
     if exam.status != ExamStatus.live:
         raise HTTPException(status_code=400, detail="Exam is not live yet")
+    student_class_name = resolve_student_class_name(db, current_user)
+    if exam.class_name not in build_class_aliases(student_class_name):
+        raise HTTPException(status_code=403, detail="This exam is not assigned to your class")
 
+    student_ids = resolve_student_identity_ids(db, current_user)
     existing = db.query(ExamAttempt).filter(
         ExamAttempt.exam_id == exam_id,
-        ExamAttempt.student_id == current_user.id
+        ExamAttempt.student_id.in_(student_ids)
     ).first()
     if existing:
         if existing.is_terminated:
