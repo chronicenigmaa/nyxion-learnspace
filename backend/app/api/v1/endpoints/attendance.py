@@ -11,23 +11,40 @@ from app.core.security import get_current_user, hash_password
 router = APIRouter()
 
 
+def normalize_name(value: str | None) -> str:
+    return "".join(str(value or "").lower().split())
+
+
 def resolve_student_identity_ids(db: Session, current_user: User) -> list:
     user_ids = {current_user.id}
+    candidate_query = db.query(User.id, User.name, User.roll_number, User.class_name).filter(
+        User.role == Role.student,
+        User.id != current_user.id,
+    )
+    if current_user.school_id:
+        candidate_query = candidate_query.filter(User.school_id == current_user.school_id)
+    candidates = candidate_query.all()
 
     if current_user.roll_number:
-        matches = db.query(User.id).filter(
-            User.role == Role.student,
-            User.roll_number == current_user.roll_number,
-        ).all()
-        user_ids.update(match[0] for match in matches)
+        for candidate in candidates:
+            if candidate.roll_number == current_user.roll_number:
+                user_ids.add(candidate.id)
 
-    elif current_user.class_name and current_user.name:
-        matches = db.query(User.id).filter(
-            User.role == Role.student,
-            User.class_name == current_user.class_name,
-            User.name == current_user.name,
-        ).all()
-        user_ids.update(match[0] for match in matches)
+    current_name = normalize_name(current_user.name)
+    if current_name:
+        for candidate in candidates:
+            if normalize_name(candidate.name) != current_name:
+                continue
+            if current_user.class_name and candidate.class_name and candidate.class_name != current_user.class_name:
+                continue
+            user_ids.add(candidate.id)
+
+    email_match = db.query(User.id).filter(
+        User.role == Role.student,
+        User.email == current_user.email,
+        User.id != current_user.id,
+    ).all()
+    user_ids.update(match[0] for match in email_match)
 
     return list(user_ids)
 

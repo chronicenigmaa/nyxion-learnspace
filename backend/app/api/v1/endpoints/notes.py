@@ -14,6 +14,44 @@ UPLOAD_DIR = "/uploads/notes"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 
+def normalize_name(value: str | None) -> str:
+    return "".join(str(value or "").lower().split())
+
+
+def resolve_student_class_name(db: Session, current_user: User) -> str | None:
+    if current_user.class_name:
+        return current_user.class_name
+
+    candidate_query = db.query(User).filter(
+        User.role == Role.student,
+        User.id != current_user.id,
+    )
+    if current_user.school_id:
+        candidate_query = candidate_query.filter(User.school_id == current_user.school_id)
+    candidates = candidate_query.all()
+
+    if current_user.roll_number:
+        for candidate in candidates:
+            if candidate.roll_number == current_user.roll_number and candidate.class_name:
+                return candidate.class_name
+
+    current_name = normalize_name(current_user.name)
+    if current_name:
+        for candidate in candidates:
+            if normalize_name(candidate.name) == current_name and candidate.class_name:
+                return candidate.class_name
+
+    email_match = db.query(User).filter(
+        User.role == Role.student,
+        User.email == current_user.email,
+        User.id != current_user.id,
+    ).first()
+    if email_match and email_match.class_name:
+        return email_match.class_name
+
+    return None
+
+
 def build_class_aliases(class_name: str | None) -> set[str]:
     raw = str(class_name or "").strip()
     if not raw:
@@ -56,7 +94,12 @@ def list_notes(db: Session = Depends(get_db), current_user: User = Depends(get_c
     if current_user.role == Role.teacher:
         notes = db.query(Note).filter(Note.teacher_id == current_user.id).all()
     elif current_user.role == Role.student:
-        aliases = build_class_aliases(current_user.class_name)
+        class_name = resolve_student_class_name(db, current_user)
+        if class_name and not current_user.class_name:
+            current_user.class_name = class_name
+            db.commit()
+            db.refresh(current_user)
+        aliases = build_class_aliases(class_name)
         if not aliases:
             return []
         notes = db.query(Note).filter(Note.class_name.in_(aliases)).all()
