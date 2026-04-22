@@ -302,6 +302,7 @@ def get_exam_results(exam_id: uuid.UUID, db: Session = Depends(get_db), current_
         raise HTTPException(status_code=403, detail="Teachers only")
     attempts = db.query(ExamAttempt).filter(ExamAttempt.exam_id == exam_id).all()
     return [{
+        "attempt_id": str(a.id),
         "student_id": str(a.student_id),
         "student_name": a.student.name if a.student else "Unknown",
         "score": a.score,
@@ -310,3 +311,71 @@ def get_exam_results(exam_id: uuid.UUID, db: Session = Depends(get_db), current_
         "submitted_at": a.submitted_at.isoformat() if a.submitted_at else None,
         "terminated": a.is_terminated,
     } for a in attempts]
+
+
+@router.get("/{exam_id}/results/{attempt_id}")
+def get_exam_attempt_detail(
+    exam_id: uuid.UUID,
+    attempt_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if current_user.role not in [Role.teacher, Role.school_admin]:
+        raise HTTPException(status_code=403, detail="Teachers only")
+
+    attempt = db.query(ExamAttempt).filter(
+        ExamAttempt.id == attempt_id,
+        ExamAttempt.exam_id == exam_id,
+    ).first()
+    if not attempt:
+        raise HTTPException(status_code=404, detail="Attempt not found")
+
+    exam = db.query(Exam).filter(Exam.id == exam_id).first()
+    if not exam:
+        raise HTTPException(status_code=404, detail="Exam not found")
+
+    questions = []
+    for question in (exam.questions or []):
+        question_id = question.get("id")
+        student_answer = (attempt.answers or {}).get(question_id, "")
+        correct_answer = question.get("correct_answer")
+        is_correct = None
+        if question.get("type") == "mcq" and correct_answer is not None:
+            is_correct = student_answer == correct_answer
+
+        questions.append({
+            "id": question_id,
+            "type": question.get("type"),
+            "question": question.get("question"),
+            "options": question.get("options") or [],
+            "marks": question.get("marks", 0),
+            "correct_answer": correct_answer,
+            "student_answer": student_answer,
+            "is_correct": is_correct,
+        })
+
+    return {
+        "attempt_id": str(attempt.id),
+        "exam": {
+            "id": str(exam.id),
+            "title": exam.title,
+            "subject": exam.subject,
+            "class_name": exam.class_name,
+            "total_marks": exam.total_marks,
+            "duration_minutes": exam.duration_minutes,
+            "status": exam.status.value,
+            "scheduled_at": exam.scheduled_at.isoformat() if exam.scheduled_at else None,
+        },
+        "student": {
+            "id": str(attempt.student_id),
+            "name": attempt.student.name if attempt.student else "Unknown",
+        },
+        "score": attempt.score,
+        "terminated": attempt.is_terminated,
+        "termination_reason": attempt.termination_reason,
+        "tab_switches": attempt.tab_switch_count,
+        "violations": attempt.violations or [],
+        "submitted_at": attempt.submitted_at.isoformat() if attempt.submitted_at else None,
+        "started_at": attempt.started_at.isoformat() if attempt.started_at else None,
+        "questions": questions,
+    }

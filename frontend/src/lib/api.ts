@@ -81,6 +81,8 @@ export const submitExam = (examId: string, answers: any) =>
   api.post(`/api/v1/exams/${examId}/attempt/submit`, answers)
 export const getExamResults = (examId: string) =>
   api.get(`/api/v1/exams/${examId}/results`)
+export const getExamAttemptDetail = (examId: string, attemptId: string) =>
+  api.get(`/api/v1/exams/${examId}/results/${attemptId}`)
 
 // Attendance
 export const markAttendance = (data: any) => api.post('/api/v1/attendance/bulk', data)

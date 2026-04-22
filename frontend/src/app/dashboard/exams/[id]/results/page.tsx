@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { getExamResults, getExams } from '@/lib/api'
-import { ArrowLeft, AlertTriangle, CheckCircle } from 'lucide-react'
+import { ArrowLeft, AlertTriangle, Eye } from 'lucide-react'
 import Link from 'next/link'
 
 export default function ExamResultsPage() {
@@ -37,7 +37,7 @@ export default function ExamResultsPage() {
             <span className="col-span-2">Student</span>
             <span className="text-center">Score</span>
             <span className="text-center">Violations</span>
-            <span className="text-center">Status</span>
+            <span className="text-center">Review</span>
           </div>
           {results.map(r => (
             <div key={r.student_id} className="px-5 py-4 border-b border-[var(--border)] last:border-0 grid grid-cols-5 items-center hover:bg-[var(--surface-700)] transition-colors">
@@ -49,11 +49,13 @@ export default function ExamResultsPage() {
                   : <span className="text-slate-500 text-xs">0</span>}
               </div>
               <div className="text-center">
-                {r.terminated
-                  ? <span className="badge badge-red">Terminated</span>
-                  : r.submitted_at
-                    ? <span className="badge badge-green">Submitted</span>
-                    : <span className="badge badge-gray">In Progress</span>}
+                <Link
+                  href={`/dashboard/exams/${id}/results/${r.attempt_id}`}
+                  className="inline-flex items-center gap-1.5 text-sm text-indigo-400 hover:text-indigo-300"
+                >
+                  <Eye size={14} />
+                  Open
+                </Link>
               </div>
             </div>
           ))}
