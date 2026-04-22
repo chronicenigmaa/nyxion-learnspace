@@ -1,8 +1,8 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { getUser, getNotes, uploadNotes, deleteNote } from '@/lib/api'
+import { getUser, getMe, getNotes, uploadNotes, deleteNote } from '@/lib/api'
 import toast from 'react-hot-toast'
-import { BookOpen, Upload, Trash2, Download, FileText, Plus, X } from 'lucide-react'
+import { BookOpen, Upload, Trash2, Download, FileText, Plus, X, AlertTriangle } from 'lucide-react'
 import { format } from 'date-fns'
 
 const SUBJECT_OPTIONS = ['Mathematics', 'Physics', 'English', 'Chemistry', 'Biology', 'Science']
@@ -10,19 +10,33 @@ const CLASS_OPTIONS = ['Class 8A', 'Class 8B', 'Class 9A', 'Class 9B', 'Class 10
 
 export default function NotesPage() {
   const [user, setUser] = useState<any>(null)
+  const [profile, setProfile] = useState<any>(null)
   const [notes, setNotes] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
   const [showForm, setShowForm] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [files, setFiles] = useState<File[]>([])
   const [form, setForm] = useState({ title: '', description: '', subject: '', class_name: '' })
 
-  useEffect(() => { setUser(getUser()); load() }, [])
+  useEffect(() => {
+    setUser(getUser())
+    getMe().then(r => setProfile(r.data)).catch(() => {})
+    load()
+  }, [])
 
   async function load() {
     setLoading(true)
-    try { const r = await getNotes(); setNotes(r.data) } catch {}
-    finally { setLoading(false) }
+    setLoadError(false)
+    try {
+      const r = await getNotes()
+      setNotes(r.data)
+    } catch {
+      setLoadError(true)
+      toast.error('Failed to load notes')
+    } finally {
+      setLoading(false)
+    }
   }
 
   async function handleUpload(e: React.FormEvent) {
@@ -158,11 +172,27 @@ export default function NotesPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {[1,2,3,4].map(i => <div key={i} className="skeleton h-40 rounded-xl" />)}
         </div>
+      ) : loadError ? (
+        <div className="card p-12 text-center">
+          <AlertTriangle size={32} className="text-red-400 mx-auto mb-3" />
+          <p className="text-slate-300 font-medium">Failed to load notes</p>
+          <p className="text-slate-500 text-sm mt-1">Check your connection and try again.</p>
+          <button onClick={load} className="btn-secondary mt-4">Retry</button>
+        </div>
       ) : notes.length === 0 ? (
         <div className="card p-12 text-center">
           <BookOpen size={32} className="text-slate-600 mx-auto mb-3" />
-          <p className="text-slate-400">No notes available yet</p>
-          {isTeacher && <button onClick={() => setShowForm(true)} className="btn-primary mt-4">Upload first notes</button>}
+          {!isTeacher && profile && !profile.class_name ? (
+            <>
+              <p className="text-slate-300 font-medium">No class assigned to your account</p>
+              <p className="text-slate-500 text-sm mt-1">Ask your admin to assign you to a class so notes appear here.</p>
+            </>
+          ) : (
+            <>
+              <p className="text-slate-400">No notes available yet</p>
+              {isTeacher && <button onClick={() => setShowForm(true)} className="btn-primary mt-4">Upload first notes</button>}
+            </>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
