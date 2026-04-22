@@ -116,6 +116,15 @@ class ViolationLog(BaseModel):
     details: str = ""
 
 
+class ManualQuestionGrade(BaseModel):
+    question_id: str
+    awarded_marks: float
+
+
+class ManualGradeRequest(BaseModel):
+    question_grades: List[ManualQuestionGrade]
+
+
 def serialize_exam(e: Exam, include_answers: bool = False):
     questions = e.questions or []
     if not include_answers:
@@ -139,6 +148,42 @@ def serialize_exam(e: Exam, include_answers: bool = False):
         "max_tab_warnings": e.max_tab_warnings,
         "shuffle_questions": e.shuffle_questions,
     }
+
+
+def split_attempt_payload(raw_answers: dict | None) -> tuple[dict, dict]:
+    payload = raw_answers or {}
+    student_answers = {k: v for k, v in payload.items() if not str(k).startswith("__")}
+    manual_grades = payload.get("__manual_grades__", {})
+    if not isinstance(manual_grades, dict):
+        manual_grades = {}
+    return student_answers, manual_grades
+
+
+def calculate_attempt_score(exam: Exam, raw_answers: dict | None) -> tuple[float, dict]:
+    student_answers, manual_grades = split_attempt_payload(raw_answers)
+    total_score = 0.0
+    normalized_manual_grades: dict[str, float] = {}
+
+    for q in (exam.questions or []):
+        question_id = q.get("id")
+        if not question_id:
+            continue
+        marks = float(q.get("marks", 0) or 0)
+        if q.get("type") == "mcq" and q.get("correct_answer") is not None:
+            if student_answers.get(question_id, "") == q.get("correct_answer"):
+                total_score += marks
+        else:
+            manual_mark = manual_grades.get(question_id)
+            if manual_mark is None:
+                continue
+            try:
+                manual_mark_value = max(0.0, min(float(manual_mark), marks))
+            except (TypeError, ValueError):
+                continue
+            normalized_manual_grades[question_id] = manual_mark_value
+            total_score += manual_mark_value
+
+    return round(total_score, 2), normalized_manual_grades
 
 
 @router.get("/")
@@ -281,16 +326,9 @@ def submit_exam(exam_id: uuid.UUID, answers: dict, db: Session = Depends(get_db)
 
     exam = db.query(Exam).filter(Exam.id == exam_id).first()
 
-    # Auto-grade MCQ questions
-    auto_score = 0
-    for q in (exam.questions or []):
-        if q.get("type") == "mcq" and q.get("correct_answer"):
-            student_answer = answers.get(q["id"], "")
-            if student_answer == q["correct_answer"]:
-                auto_score += q.get("marks", 0)
-
     attempt.answers = answers
     attempt.submitted_at = datetime.utcnow()
+    auto_score, _ = calculate_attempt_score(exam, answers)
     attempt.score = auto_score
     db.commit()
     return {"message": "Exam submitted", "auto_score": auto_score}
@@ -334,10 +372,11 @@ def get_exam_attempt_detail(
     if not exam:
         raise HTTPException(status_code=404, detail="Exam not found")
 
+    student_answers, manual_grades = split_attempt_payload(attempt.answers)
     questions = []
     for question in (exam.questions or []):
         question_id = question.get("id")
-        student_answer = (attempt.answers or {}).get(question_id, "")
+        student_answer = student_answers.get(question_id, "")
         correct_answer = question.get("correct_answer")
         is_correct = None
         if question.get("type") == "mcq" and correct_answer is not None:
@@ -352,6 +391,7 @@ def get_exam_attempt_detail(
             "correct_answer": correct_answer,
             "student_answer": student_answer,
             "is_correct": is_correct,
+            "awarded_marks": manual_grades.get(question_id) if question.get("type") != "mcq" else (question.get("marks", 0) if is_correct else 0),
         })
 
     return {
@@ -378,4 +418,57 @@ def get_exam_attempt_detail(
         "submitted_at": attempt.submitted_at.isoformat() if attempt.submitted_at else None,
         "started_at": attempt.started_at.isoformat() if attempt.started_at else None,
         "questions": questions,
+    }
+
+
+@router.patch("/{exam_id}/results/{attempt_id}/grade")
+def grade_exam_attempt(
+    exam_id: uuid.UUID,
+    attempt_id: uuid.UUID,
+    req: ManualGradeRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if current_user.role not in [Role.teacher, Role.school_admin]:
+        raise HTTPException(status_code=403, detail="Teachers only")
+
+    attempt = db.query(ExamAttempt).filter(
+        ExamAttempt.id == attempt_id,
+        ExamAttempt.exam_id == exam_id,
+    ).first()
+    if not attempt:
+        raise HTTPException(status_code=404, detail="Attempt not found")
+
+    exam = db.query(Exam).filter(Exam.id == exam_id).first()
+    if not exam:
+        raise HTTPException(status_code=404, detail="Exam not found")
+
+    student_answers, existing_manual_grades = split_attempt_payload(attempt.answers)
+    manual_grades = dict(existing_manual_grades)
+    question_map = {str(q.get("id")): q for q in (exam.questions or [])}
+    for grade in req.question_grades:
+        question = question_map.get(grade.question_id)
+        if not question:
+            raise HTTPException(status_code=400, detail=f"Unknown question id: {grade.question_id}")
+        if question.get("type") == "mcq":
+            continue
+        question_marks = float(question.get("marks", 0) or 0)
+        if grade.awarded_marks < 0 or grade.awarded_marks > question_marks:
+            raise HTTPException(status_code=400, detail=f"Marks for question {grade.question_id} must be between 0 and {question_marks}")
+        manual_grades[grade.question_id] = float(grade.awarded_marks)
+
+    combined_answers = {
+        **student_answers,
+        "__manual_grades__": manual_grades,
+    }
+    total_score, normalized_manual_grades = calculate_attempt_score(exam, combined_answers)
+    combined_answers["__manual_grades__"] = normalized_manual_grades
+    attempt.answers = combined_answers
+    attempt.score = total_score
+    db.commit()
+
+    return {
+        "message": "Exam graded",
+        "score": total_score,
+        "manual_grades": normalized_manual_grades,
     }

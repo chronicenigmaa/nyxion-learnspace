@@ -83,6 +83,8 @@ export const getExamResults = (examId: string) =>
   api.get(`/api/v1/exams/${examId}/results`)
 export const getExamAttemptDetail = (examId: string, attemptId: string) =>
   api.get(`/api/v1/exams/${examId}/results/${attemptId}`)
+export const gradeExamAttempt = (examId: string, attemptId: string, data: { question_grades: Array<{ question_id: string; awarded_marks: number }> }) =>
+  api.patch(`/api/v1/exams/${examId}/results/${attemptId}/grade`, data)
 
 // Attendance
 export const markAttendance = (data: any) => api.post('/api/v1/attendance/bulk', data)

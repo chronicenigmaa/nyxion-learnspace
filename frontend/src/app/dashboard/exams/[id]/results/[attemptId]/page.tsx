@@ -1,21 +1,68 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
-import { getExamAttemptDetail } from '@/lib/api'
+import { getExamAttemptDetail, gradeExamAttempt } from '@/lib/api'
 import { ArrowLeft, AlertTriangle, CheckCircle, XCircle } from 'lucide-react'
 import Link from 'next/link'
+import toast from 'react-hot-toast'
 
 export default function ExamAttemptDetailPage() {
   const { id, attemptId } = useParams() as { id: string; attemptId: string }
   const [data, setData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [manualGrades, setManualGrades] = useState<Record<string, string>>({})
 
   useEffect(() => {
     getExamAttemptDetail(id, attemptId)
-      .then((res) => setData(res.data))
+      .then((res) => {
+        setData(res.data)
+        const initialGrades: Record<string, string> = {}
+        for (const question of res.data.questions || []) {
+          if (question.type === 'mcq') continue
+          initialGrades[question.id] = question.awarded_marks != null ? String(question.awarded_marks) : ''
+        }
+        setManualGrades(initialGrades)
+      })
       .catch(() => setData(null))
       .finally(() => setLoading(false))
   }, [id, attemptId])
+
+  async function handleSaveGrades() {
+    if (!data) return
+    const questionGrades = (data.questions || [])
+      .filter((question: any) => question.type !== 'mcq')
+      .map((question: any) => {
+        const rawValue = manualGrades[question.id]
+        return {
+          question_id: question.id,
+          awarded_marks: rawValue === '' ? 0 : Number(rawValue),
+        }
+      })
+
+    if (questionGrades.some((grade: any) => Number.isNaN(grade.awarded_marks))) {
+      toast.error('Enter valid marks for all manual-review questions')
+      return
+    }
+
+    setSaving(true)
+    try {
+      await gradeExamAttempt(id, attemptId, { question_grades: questionGrades })
+      const refreshed = await getExamAttemptDetail(id, attemptId)
+      setData(refreshed.data)
+      const nextGrades: Record<string, string> = {}
+      for (const question of refreshed.data.questions || []) {
+        if (question.type === 'mcq') continue
+        nextGrades[question.id] = question.awarded_marks != null ? String(question.awarded_marks) : ''
+      }
+      setManualGrades(nextGrades)
+      toast.success('Exam grading saved')
+    } catch (err: any) {
+      toast.error(err?.response?.data?.detail || 'Failed to save grades')
+    } finally {
+      setSaving(false)
+    }
+  }
 
   if (loading) {
     return <div className="skeleton h-72 rounded-xl" />
@@ -43,6 +90,11 @@ export default function ExamAttemptDetailPage() {
           <p className="text-slate-400 text-sm">
             {data.student.name} · {data.exam.subject} · Score {data.score ?? '—'} / {data.exam.total_marks}
           </p>
+        </div>
+        <div className="ml-auto">
+          <button onClick={handleSaveGrades} disabled={saving} className="btn-primary">
+            {saving ? 'Saving...' : 'Save Grades'}
+          </button>
         </div>
       </div>
 
@@ -154,6 +206,29 @@ export default function ExamAttemptDetailPage() {
                 <p className="text-sm text-white mt-1 whitespace-pre-wrap">{question.correct_answer || 'Manual review required.'}</p>
               </div>
             </div>
+
+            {question.type !== 'mcq' && (
+              <div className="mt-4 rounded-lg p-3 border border-indigo-500/20" style={{ background: 'rgba(99,102,241,0.08)' }}>
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-medium text-white">Teacher Grading</p>
+                    <p className="text-xs text-slate-400 mt-1">Award marks for this manual-review response.</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      min={0}
+                      max={question.marks}
+                      step="0.5"
+                      value={manualGrades[question.id] ?? ''}
+                      onChange={(e) => setManualGrades((prev) => ({ ...prev, [question.id]: e.target.value }))}
+                      className="input w-24 text-center"
+                    />
+                    <span className="text-sm text-slate-400">/ {question.marks}</span>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         ))}
       </div>
