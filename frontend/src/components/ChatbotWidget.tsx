@@ -9,76 +9,68 @@ interface Message {
 }
 
 async function buildContext(user: any): Promise<string> {
-  let ctx = `Student/User Info:
+  let ctx = `User Info:
 - Name: ${user?.name}
 - Role: ${user?.role}
 - Class: ${user?.class_name || 'N/A'}
-- Subject (if teacher): ${user?.subject || 'N/A'}`
+- Subject: ${user?.subject || 'N/A'}`
 
-  const results = await Promise.allSettled([
-    api.get('/api/v1/exams/'),
-    api.get('/api/v1/assignments/'),
-    api.get('/api/v1/grades/my'),
-    api.get('/api/v1/attendance/my'),
-    api.get('/api/v1/notes/'),
-    api.get('/api/v1/events/'),
-  ])
-
-  const [examsR, assignR, gradesR, attR, notesR, eventsR] = results
-
-  if (examsR.status === 'fulfilled') {
-    const all = examsR.value.data as any[]
-    const scheduled = all.filter(e => e.status === 'scheduled')
-    const live = all.filter(e => e.status === 'live')
-    const ended = all.filter(e => e.status === 'ended')
+  try {
+    const { data } = await api.get('/api/v1/exams/')
+    const all = Array.isArray(data) ? data : []
+    const scheduled = all.filter((e: any) => e.status === 'scheduled')
+    const live = all.filter((e: any) => e.status === 'live')
+    const ended = all.filter((e: any) => e.status === 'ended')
     ctx += `\n\nExams:
-- Scheduled (${scheduled.length}): ${scheduled.map(e => `"${e.title}" in ${e.subject} on ${e.scheduled_at ? new Date(e.scheduled_at).toDateString() : 'TBD'} (${e.duration_minutes} min, ${e.total_marks} marks)`).join('; ') || 'None'}
-- Live now (${live.length}): ${live.map(e => `"${e.title}" in ${e.subject}`).join('; ') || 'None'}
-- Completed (${ended.length}): ${ended.slice(0, 3).map(e => `"${e.title}"`).join('; ') || 'None'}`
-  }
+- Scheduled (${scheduled.length}): ${scheduled.map((e: any) => `"${e.title}" in ${e.subject} on ${e.scheduled_at ? new Date(e.scheduled_at).toDateString() : 'TBD'} (${e.duration_minutes} min, ${e.total_marks} marks)`).join('; ') || 'None'}
+- Live now (${live.length}): ${live.map((e: any) => `"${e.title}" in ${e.subject}`).join('; ') || 'None'}
+- Ended (${ended.length}): ${ended.slice(0, 3).map((e: any) => `"${e.title}" in ${e.subject}`).join('; ') || 'None'}`
+  } catch { ctx += '\n\nExams: unavailable' }
 
-  if (assignR.status === 'fulfilled') {
-    const all = assignR.value.data as any[]
-    const active = all.filter(a => a.status === 'published' && new Date(a.due_date) > new Date())
-    const overdue = all.filter(a => new Date(a.due_date) < new Date() && a.status !== 'closed')
-    const closed = all.filter(a => a.status === 'closed')
+  try {
+    const { data } = await api.get('/api/v1/assignments/')
+    const all = Array.isArray(data) ? data : []
+    const active = all.filter((a: any) => a.status === 'published' && new Date(a.due_date) > new Date())
+    const overdue = all.filter((a: any) => a.status === 'published' && new Date(a.due_date) <= new Date())
+    const closed = all.filter((a: any) => a.status === 'closed')
     ctx += `\n\nAssignments:
-- Active/Upcoming (${active.length}): ${active.map(a => `"${a.title}" (${a.subject}, due ${new Date(a.due_date).toDateString()}, ${a.max_marks} marks, submissions: ${a.submission_count ?? 'N/A'})`).join('; ') || 'None'}
-- Overdue (${overdue.length}): ${overdue.map(a => `"${a.title}" (${a.subject})`).join('; ') || 'None'}
-- Closed (${closed.length}): ${closed.slice(0, 3).map(a => `"${a.title}"`).join('; ') || 'None'}`
-  }
+- Active (${active.length}): ${active.map((a: any) => `"${a.title}" (${a.subject}, due ${new Date(a.due_date).toDateString()}, ${a.max_marks} marks)`).join('; ') || 'None'}
+- Overdue (${overdue.length}): ${overdue.map((a: any) => `"${a.title}" (${a.subject})`).join('; ') || 'None'}
+- Closed (${closed.length}): ${closed.slice(0, 3).map((a: any) => `"${a.title}"`).join('; ') || 'None'}`
+  } catch { ctx += '\n\nAssignments: unavailable' }
 
-  if (gradesR.status === 'fulfilled') {
-    const grades = gradesR.value.data as any[]
+  try {
+    const { data } = await api.get('/api/v1/grades/my')
+    const grades = Array.isArray(data) ? data : []
     const avg = grades.length > 0
-      ? Math.round(grades.reduce((s, g) => s + (g.percentage || 0), 0) / grades.length)
+      ? Math.round(grades.reduce((s: number, g: any) => s + (g.percentage || 0), 0) / grades.length)
       : 0
-    ctx += `\n\nGrades (${grades.length} graded assignments):
-- Average: ${avg}%
-- Recent: ${grades.slice(0, 5).map(g => `"${g.assignment_title}" ${g.marks_obtained}/${g.max_marks} (${g.percentage}%)`).join('; ') || 'None'}`
-  }
+    ctx += `\n\nGrades (${grades.length} graded):
+- Average: ${grades.length > 0 ? avg + '%' : 'No grades yet'}
+- Recent: ${grades.slice(0, 5).map((g: any) => `"${g.assignment_title}" ${g.marks_obtained}/${g.max_marks} (${g.percentage}%)`).join('; ') || 'None'}`
+  } catch { ctx += '\n\nGrades: unavailable' }
 
-  if (attR.status === 'fulfilled') {
-    const att = attR.value.data as any[]
-    const present = att.filter(a => a.is_present).length
+  try {
+    const { data } = await api.get('/api/v1/attendance/my')
+    const att = Array.isArray(data) ? data : []
+    const present = att.filter((a: any) => a.is_present).length
     const total = att.length
     const pct = total > 0 ? Math.round((present / total) * 100) : 0
-    const recent = att.slice(-5).reverse()
-    ctx += `\n\nAttendance:
-- Overall: ${present}/${total} days (${pct}%)
-- Recent: ${recent.map(a => `${a.date} - ${a.is_present ? 'Present' : 'Absent'} (${a.subject || 'General'})`).join('; ') || 'None'}`
-  }
+    ctx += `\n\nAttendance: ${present}/${total} days present (${pct}%)`
+  } catch { ctx += '\n\nAttendance: unavailable' }
 
-  if (notesR.status === 'fulfilled') {
-    const notes = notesR.value.data as any[]
-    ctx += `\n\nNotes & Slides (${notes.length} total): ${notes.slice(0, 5).map(n => `"${n.title}" (${n.subject}, ${n.class_name})`).join('; ') || 'None'}`
-  }
+  try {
+    const { data } = await api.get('/api/v1/notes/')
+    const notes = Array.isArray(data) ? data : []
+    ctx += `\n\nNotes & Slides (${notes.length}): ${notes.slice(0, 5).map((n: any) => `"${n.title}" (${n.subject}, ${n.class_name})`).join('; ') || 'None'}`
+  } catch { ctx += '\n\nNotes: unavailable' }
 
-  if (eventsR.status === 'fulfilled') {
-    const events = eventsR.value.data as any[]
-    const upcoming = events.filter(e => new Date(e.date) >= new Date())
-    ctx += `\n\nUpcoming Events/Holidays (${upcoming.length}): ${upcoming.slice(0, 5).map(e => `"${e.title}" on ${e.date} (${e.event_type})`).join('; ') || 'None'}`
-  }
+  try {
+    const { data } = await api.get('/api/v1/events/')
+    const events = Array.isArray(data) ? data : []
+    const upcoming = events.filter((e: any) => new Date(e.date) >= new Date())
+    ctx += `\n\nUpcoming Events/Holidays (${upcoming.length}): ${upcoming.slice(0, 5).map((e: any) => `"${e.title}" on ${e.date} (${e.event_type})`).join('; ') || 'None'}`
+  } catch { ctx += '\n\nEvents: unavailable' }
 
   return ctx
 }
@@ -89,7 +81,7 @@ export default function ChatbotWidget() {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: `Hi ${user?.name?.split(' ')[0] || 'there'}! I'm Nyxion AI. I can see your exams, assignments, grades, attendance, and more. Ask me anything!`
+      content: `Hi ${user?.name?.split(' ')[0] || 'there'}! I'm Nyxion AI. I can see your live exams, assignments, grades, and attendance. Ask me anything!`
     }
   ])
   const [input, setInput] = useState('')
@@ -110,16 +102,14 @@ export default function ChatbotWidget() {
 
     try {
       const context = await buildContext(user)
-
       const { data } = await api.post('/api/v1/ai/chatbot', {
         message: msg,
         school_context: context
       })
-
       setMessages(m => [...m, { role: 'assistant', content: data.response }])
     } catch (e: any) {
-      const detail = e.response?.data?.detail || 'Something went wrong. Try again.'
-      setMessages(m => [...m, { role: 'assistant', content: detail }])
+      const detail = e.response?.data?.detail || e.message || 'Unknown error'
+      setMessages(m => [...m, { role: 'assistant', content: `Error: ${detail}` }])
     } finally {
       setLoading(false)
     }
@@ -155,7 +145,7 @@ export default function ChatbotWidget() {
             </div>
             <div>
               <div className="text-sm font-medium text-white">Nyxion AI</div>
-              <div className="text-xs text-slate-500">Knows your data • Llama 3.3 70B</div>
+              <div className="text-xs text-slate-500">Knows your live data</div>
             </div>
           </div>
 
