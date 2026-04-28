@@ -7,22 +7,26 @@ import NyxionLogo from '@/components/ui/NyxionLogo'
 import {
   LayoutDashboard, BookOpen, FileText, BarChart2,
   Calendar, ClipboardList, LogOut, Menu, X,
-  GraduationCap, Upload, Video, Users, Settings
+  GraduationCap, Upload, Video, Users, Settings, Sparkles
 } from 'lucide-react'
 
 interface NavItem { label: string; href: string; icon: any; roles: string[] }
 
 const NAV: NavItem[] = [
-  { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ['student', 'teacher', 'school_admin', 'super_admin'] },
-  { label: 'Assignments', href: '/dashboard/assignments', icon: FileText, roles: ['student', 'teacher', 'school_admin'] },
-  { label: 'Exams', href: '/dashboard/exams', icon: ClipboardList, roles: ['student', 'teacher', 'school_admin'] },
-  { label: 'Notes & Slides', href: '/dashboard/notes', icon: BookOpen, roles: ['student', 'teacher', 'school_admin'] },
-  { label: 'Attendance', href: '/dashboard/attendance', icon: Calendar, roles: ['teacher', 'school_admin'] },
-  { label: 'My Attendance', href: '/dashboard/attendance/my', icon: Calendar, roles: ['student'] },
-  { label: 'Grades', href: '/dashboard/grades', icon: BarChart2, roles: ['student', 'teacher', 'school_admin'] },
-  { label: 'Calendar', href: '/dashboard/calendar', icon: Calendar, roles: ['student', 'teacher', 'school_admin', 'super_admin'] },
-  { label: 'Users', href: '/dashboard/users', icon: Users, roles: ['school_admin', 'super_admin'] },
-  { label: 'Students', href: '/dashboard/students', icon: Users, roles: ['teacher', 'school_admin', 'super_admin'] },
+  { label: 'Dashboard',      href: '/dashboard',              icon: LayoutDashboard, roles: ['student', 'teacher', 'school_admin', 'super_admin'] },
+  { label: 'Assignments',    href: '/dashboard/assignments',  icon: FileText,        roles: ['student', 'teacher', 'school_admin'] },
+  { label: 'Exams',          href: '/dashboard/exams',        icon: ClipboardList,   roles: ['student', 'teacher', 'school_admin'] },
+  { label: 'Notes & Slides', href: '/dashboard/notes',        icon: BookOpen,        roles: ['student', 'teacher', 'school_admin'] },
+  { label: 'Timetable',      href: '/dashboard/timetable',   icon: Calendar,        roles: ['student', 'teacher', 'school_admin'] },
+  { label: 'Coursebooks',    href: '/dashboard/coursebooks',  icon: GraduationCap,   roles: ['student', 'teacher', 'school_admin'] },
+  { label: 'Attendance',     href: '/dashboard/attendance',   icon: Calendar,        roles: ['teacher', 'school_admin'] },
+  { label: 'My Attendance',  href: '/dashboard/attendance/my',icon: Calendar,        roles: ['student'] },
+  { label: 'Grades',         href: '/dashboard/grades',       icon: BarChart2,       roles: ['student', 'teacher', 'school_admin'] },
+  { label: 'Calendar',       href: '/dashboard/calendar',     icon: Calendar,        roles: ['student', 'teacher', 'school_admin', 'super_admin'] },
+  { label: 'AI Tools',       href: '/dashboard/ai',           icon: Settings,        roles: ['teacher', 'school_admin'] },
+  { label: 'AI Study',       href: '/dashboard/ai/study',     icon: BookOpen,        roles: ['student'] },
+  { label: 'Users',          href: '/dashboard/users',        icon: Users,           roles: ['school_admin', 'super_admin'] },
+  { label: 'Students',       href: '/dashboard/students',     icon: Users,           roles: ['teacher', 'school_admin', 'super_admin'] },
 ]
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
