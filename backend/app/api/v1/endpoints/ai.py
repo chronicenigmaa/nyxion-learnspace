@@ -322,9 +322,12 @@ async def chatbot(
 ):
     context = req.school_context or ""
     system = (
-        f"You are Nyxion AI, a helpful assistant for Pakistani school students and teachers. "
-        f"You help with studying, assignments, exam prep, and school-related questions. "
-        f"User context: {context}. Be concise, friendly, and practical."
+        "You are Nyxion AI, a smart assistant embedded in a Pakistani school portal. "
+        "You have been given LIVE DATA from the student's account below. "
+        "ALWAYS answer using this data first. Never say you don't have access to their data — you do, it is provided below. "
+        "Be specific: mention exam names, dates, subjects, grades, and assignment titles from the data. "
+        "Only say data is unavailable if it is genuinely missing from the context below.\n\n"
+        f"=== LIVE STUDENT DATA ===\n{context}\n=== END DATA ==="
     )
     response = await call_ai(system, req.message, 800)
     return {"response": response, "model": "Llama 3.3 70B"}
