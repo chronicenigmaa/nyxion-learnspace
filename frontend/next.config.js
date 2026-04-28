@@ -1,9 +1,17 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  trailingSlash: true,
-  images: {
-    unoptimized: true,
+  reactStrictMode: true,
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/:path*`,
+      },
+      {
+        source: '/uploads/:path*',
+        destination: `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/uploads/:path*`,
+      },
+    ]
   },
 }
-
 module.exports = nextConfig

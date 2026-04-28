@@ -3,7 +3,7 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from app.api.v1.endpoints import auth, assignments, submissions, grades, attendance, exams, notes, users, events, seed
+from app.api.v1.endpoints import auth, assignments, submissions, grades, attendance, exams, notes, users, events, seed, ai
 from app.db.database import engine, Base
 
 Base.metadata.create_all(bind=engine)
@@ -32,6 +32,7 @@ app.include_router(exams.router,       prefix="/api/v1/exams",       tags=["exam
 app.include_router(notes.router,       prefix="/api/v1/notes",       tags=["notes"])
 app.include_router(events.router,      prefix="/api/v1/events",      tags=["events"])
 app.include_router(seed.router,        prefix="/api/v1/seed",        tags=["seed"])
+app.include_router(ai.router, prefix="/api/v1/ai", tags=["ai"])
 
 os.makedirs("/uploads", exist_ok=True)
 app.mount("/uploads", StaticFiles(directory="/uploads"), name="uploads")
