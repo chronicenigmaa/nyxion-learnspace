@@ -6,6 +6,7 @@ import { getUser, getAssignments, deleteAssignment, updateAssignmentStatus } fro
 import toast from 'react-hot-toast'
 import { Plus, FileText, Trash2, Eye, ToggleLeft, ToggleRight, AlertTriangle, Download, Pencil } from 'lucide-react'
 import { format, formatDistanceToNow } from 'date-fns'
+import AIDropdown from '@/components/AIDropdown'
 
 export default function AssignmentsPage() {
   const router = useRouter()
@@ -64,11 +65,25 @@ export default function AssignmentsPage() {
           <h1 className="text-2xl font-bold text-white font-display">Assignments</h1>
           <p className="text-slate-400 text-sm mt-0.5">{filtered.length} assignment{filtered.length !== 1 ? 's' : ''}</p>
         </div>
-        {isTeacher && (
-          <Link href="/dashboard/assignments/create" className="btn-primary">
-            <Plus size={16} /> New Assignment
-          </Link>
-        )}
+// Find this:
+{isTeacher && (
+  <Link href="/dashboard/assignments/create" className="btn-primary">
+    <Plus size={16} /> New Assignment
+  </Link>
+)}
+
+// Replace with:
+{isTeacher && (
+  <div className="flex items-center gap-2">
+    <AIDropdown
+      tools={['exam-generator', 'homework-generator', 'rubric-generator', 'plagiarism-check']}
+      role={user?.role}
+    />
+    <Link href="/dashboard/assignments/create" className="btn-primary">
+      <Plus size={16} /> New Assignment
+    </Link>
+  </div>
+)}
       </div>
 
       {/* Filters */}

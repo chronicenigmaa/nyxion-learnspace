@@ -9,6 +9,8 @@ import {
   Calendar, ClipboardList, LogOut, Menu, X,
   GraduationCap, Upload, Video, Users, Settings, Sparkles
 } from 'lucide-react'
+import ChatbotWidget from '@/components/ChatbotWidget'
+import AIDropdown from '@/components/AIDropdown'
 
 interface NavItem { label: string; href: string; icon: any; roles: string[] }
 
@@ -131,6 +133,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           {children}
         </div>
       </main>
+            <ChatbotWidget />
     </div>
   )
 }

@@ -309,3 +309,22 @@ async def study_plan(
         1200
     )
     return {"response": response, "model": "Llama 3.3 70B"}
+
+class ChatRequest(BaseModel):
+    message: str
+    school_context: Optional[str] = None
+
+@router.post("/chatbot")
+async def chatbot(
+    req: ChatRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    context = req.school_context or ""
+    system = (
+        f"You are Nyxion AI, a helpful assistant for Pakistani school students and teachers. "
+        f"You help with studying, assignments, exam prep, and school-related questions. "
+        f"User context: {context}. Be concise, friendly, and practical."
+    )
+    response = await call_ai(system, req.message, 800)
+    return {"response": response, "model": "Llama 3.3 70B"}
