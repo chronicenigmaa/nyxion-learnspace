@@ -175,3 +175,31 @@ class Event(Base):
     all_day = Column(Boolean, default=True)
     created_by = Column(UUID(as_uuid=True), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+    
+class Timetable(Base):
+    __tablename__ = "timetable"
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    day = Column(String, nullable=False)          # Monday, Tuesday...
+    period = Column(String, nullable=False)        # 1st, 2nd...
+    subject = Column(String, nullable=False)
+    teacher_name = Column(String, nullable=True)
+    class_name = Column(String, nullable=False)
+    start_time = Column(String, nullable=True)     # HH:MM
+    end_time = Column(String, nullable=True)       # HH:MM
+    school_id = Column(String, nullable=True)
+    created_by = Column(UUID(as_uuid=True), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class Coursebook(Base):
+    __tablename__ = "coursebooks"
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    title = Column(String, nullable=False)
+    subject = Column(String, nullable=True)
+    class_name = Column(String, nullable=True)
+    description = Column(Text, nullable=True)
+    file_path = Column(String, nullable=True)
+    file_name = Column(String, nullable=True)
+    uploaded_by = Column(String, nullable=True)
+    school_id = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
