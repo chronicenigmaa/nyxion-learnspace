@@ -355,3 +355,36 @@ def child_fees(
         return {"roll_number": child.roll_number, "fees": [], "total_due": 0,
                 "months_overdue": 0}
     return match
+
+# ── Admin: list parents (with their linked children) ───────────────────────
+@router.get("/")
+def list_parents(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    _admin_only(current_user)
+
+    q = db.query(User).filter(User.role == Role.parent)
+    # school_admin sees only their own school; super_admin sees all.
+    if current_user.role == Role.school_admin and current_user.school_id:
+        q = q.filter(User.school_id == current_user.school_id)
+    parents = q.all()
+
+    result = []
+    for p in parents:
+        links = db.query(ParentChild).filter_by(parent_id=p.id).all()
+        child_ids = [l.student_id for l in links]
+        children = (
+            db.query(User).filter(User.id.in_(child_ids)).all() if child_ids else []
+        )
+        result.append({
+            "id": str(p.id),
+            "name": p.name,
+            "email": p.email,
+            "children": [
+                {"id": str(c.id), "name": c.name,
+                 "class_name": c.class_name, "roll_number": c.roll_number}
+                for c in children
+            ],
+        })
+    return result
