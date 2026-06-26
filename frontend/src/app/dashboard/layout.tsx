@@ -29,6 +29,8 @@ const NAV: NavItem[] = [
   { label: 'AI Study',       href: '/dashboard/ai/study',     icon: BookOpen,        roles: ['student'] },
   { label: 'Users',          href: '/dashboard/users',        icon: Users,           roles: ['school_admin', 'super_admin'] },
   { label: 'Students',       href: '/dashboard/students',     icon: Users,           roles: ['teacher', 'school_admin', 'super_admin'] },
+  { label: 'My Children', href: '/dashboard/children', icon: Users, roles: ['parent'] },
+  { label: 'Parents',     href: '/dashboard/parents',  icon: Users, roles: ['school_admin', 'super_admin'] },
 ]
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {

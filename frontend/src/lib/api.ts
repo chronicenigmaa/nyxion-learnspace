@@ -149,3 +149,22 @@ export const logout = () => {
   localStorage.removeItem('ls_user')
   window.location.href = '/auth/login'
 }
+
+
+// ── Parent portal ──────────────────────────────────────────────
+// Parent-facing
+export const getMyChildren = () => api.get('/api/v1/parents/children')
+export const getChildOverview = (id: string) =>
+  api.get(`/api/v1/parents/child/${id}/overview`)
+export const getChildFees = (id: string) =>
+  api.get(`/api/v1/parents/child/${id}/fees`)
+
+// Admin-facing
+export const listParents = () => api.get('/api/v1/parents/')
+export const createParent = (data: {
+  name: string; email: string; password: string; child_ids: string[]
+}) => api.post('/api/v1/parents/', data)
+export const linkChild = (parent_id: string, student_id: string) =>
+  api.post('/api/v1/parents/link', { parent_id, student_id })
+export const unlinkChild = (parent_id: string, student_id: string) =>
+  api.delete('/api/v1/parents/link', { data: { parent_id, student_id } })

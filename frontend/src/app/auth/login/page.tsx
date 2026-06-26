@@ -49,7 +49,8 @@ export default function LoginPage() {
       teacher: '/dashboard',
       school_admin: '/dashboard',
       super_admin: '/dashboard',
-    }
+      parent: '/dashboard/children',   // ADD
+}
       toast.success(`Welcome back, ${name}!`)
       router.push(routes[role] || '/dashboard/student')
     } catch (err: any) {
