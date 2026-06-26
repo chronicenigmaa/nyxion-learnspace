@@ -1,3 +1,4 @@
+from app.core.logging_client import log_event
 import json
 import os
 import uuid
@@ -361,6 +362,12 @@ def login(req: LoginRequest, db: Session = Depends(get_db)):
             "school_id": synced_user.school_id,
             "eduos_sub": eduos_user.get("id"),
         })
+        
+        # after bad-credential check, before the raise:
+        log_event("warning", "auth.login_failed", detail_email=request.email)
+
+# right before the successful return:
+        log_event("info", "auth.login", user_id=str(user.id), role=user.role.value)
         return TokenResponse(
             access_token=token,
             user_id=str(synced_user.id),
