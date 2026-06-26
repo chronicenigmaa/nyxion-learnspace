@@ -5,6 +5,8 @@ from sqlalchemy import Column, String, Text, Float, Boolean, DateTime, ForeignKe
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from app.db.database import Base
+from sqlalchemy import UniqueConstraint   # add to the existing sqlalchemy import
+
 
 
 class Role(str, enum.Enum):
@@ -12,6 +14,7 @@ class Role(str, enum.Enum):
     school_admin = "school_admin"
     teacher = "teacher"
     student = "student"
+    parent = "parent"    
 
 
 class AssignmentStatus(str, enum.Enum):
@@ -32,7 +35,17 @@ class ExamStatus(str, enum.Enum):
     live = "live"
     ended = "ended"
 
+class ParentChild(Base):
+    __tablename__ = "parent_children"
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    parent_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    student_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
 
+    __table_args__ = (UniqueConstraint("parent_id", "student_id", name="uq_parent_student"),)
+
+    parent = relationship("User", foreign_keys=[parent_id])
+    student = relationship("User", foreign_keys=[student_id])
 class User(Base):
     __tablename__ = "users"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
