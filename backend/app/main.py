@@ -10,13 +10,13 @@ from app.core.logging_client import log_event
 from app.api.v1.endpoints import (
     auth, users, assignments, submissions, grades, attendance,
     exams, notes, events, seed, ai, timetable, coursebooks,
-    parents,                       # <- NEW (added in Phase 3)
+    parents,
 )
 from app.db.database import engine, Base
 
 Base.metadata.create_all(bind=engine)
 
-# 1) create app FIRST
+# 1) create the app FIRST
 app = FastAPI(
     title="Nyxion LearnSpace API",
     version="1.0.0",
@@ -32,7 +32,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 3) logging middleware — MUST be after `app = FastAPI(...)`
+# 3) logging middleware — must come AFTER app = FastAPI(...)
 @app.middleware("http")
 async def access_logger(request: Request, call_next):
     start = time.perf_counter()
@@ -65,7 +65,7 @@ app.include_router(seed.router,        prefix="/api/v1/seed",        tags=["seed
 app.include_router(ai.router,          prefix="/api/v1/ai",          tags=["ai"])
 app.include_router(timetable.router,   prefix="/api/v1/timetable",   tags=["timetable"])
 app.include_router(coursebooks.router, prefix="/api/v1/coursebooks", tags=["coursebooks"])
-app.include_router(parents.router,     prefix="/api/v1/parents",     tags=["parents"])  # NEW
+app.include_router(parents.router,     prefix="/api/v1/parents",     tags=["parents"])
 
 # 5) uploads + health
 os.makedirs("/uploads", exist_ok=True)
