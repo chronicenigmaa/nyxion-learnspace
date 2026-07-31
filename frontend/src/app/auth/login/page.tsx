@@ -16,9 +16,9 @@ const PORTALS = [
 ]
 
 const EMAIL_PLACEHOLDERS: Record<Portal, string> = {
-  student: 'student@demo.com',
-  teacher: 'teacher@demo.com',
-  admin: 'admin@demo.com',
+  student: 'you@school.com',
+  teacher: 'you@school.com',
+  admin: 'you@school.com',
 }
 
 export default function LoginPage() {
@@ -28,12 +28,6 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [showPass, setShowPass] = useState(false)
   const [loading, setLoading] = useState(false)
-
-  const DEMO = {
-    student: { email: 'student@demo.com', password: 'demo123' },
-    teacher: { email: 'teacher@demo.com', password: 'demo123' },
-    admin: { email: 'admin@demo.com', password: 'demo123' },
-  }
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
@@ -58,11 +52,6 @@ export default function LoginPage() {
     } finally {
       setLoading(false)
     }
-  }
-
-  function fillDemo() {
-    setEmail(DEMO[portal].email)
-    setPassword(DEMO[portal].password)
   }
 
   return (
@@ -185,14 +174,6 @@ export default function LoginPage() {
               ) : 'Sign In'}
             </button>
           </form>
-
-          <div className="mt-6 p-4 rounded-xl border border-dashed border-indigo-500/30"
-            style={{ background: 'rgba(99,102,241,0.05)' }}>
-            <p className="text-xs text-[var(--text-secondary)] mb-2 font-mono uppercase tracking-wider">Demo accounts</p>
-            <button onClick={fillDemo} className="text-indigo-600 text-sm hover:text-indigo-700 underline underline-offset-2">
-              Fill {portal} demo credentials
-            </button>
-          </div>
 
           <p className="text-center text-[var(--text-muted)] text-xs mt-8">
             Part of Nyxion EduOS · Contact admin for account setup
