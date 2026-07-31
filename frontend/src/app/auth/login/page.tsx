@@ -4,26 +4,11 @@ import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
 import { login } from '@/lib/api'
 import NyxionLogo from '@/components/ui/NyxionLogo'
-import { Eye, EyeOff, GraduationCap, BookOpen, ShieldCheck } from 'lucide-react'
+import { Eye, EyeOff } from 'lucide-react'
 import Link from 'next/link'
-
-type Portal = 'student' | 'teacher' | 'admin'
-
-const PORTALS = [
-  { id: 'student', label: 'Student', icon: GraduationCap, color: '#10b981', desc: 'View assignments & exams' },
-  { id: 'teacher', label: 'Teacher', icon: BookOpen, color: '#6366f1', desc: 'Manage class & grade work' },
-  { id: 'admin', label: 'Admin', icon: ShieldCheck, color: '#f59e0b', desc: 'School administration' },
-]
-
-const EMAIL_PLACEHOLDERS: Record<Portal, string> = {
-  student: 'you@school.com',
-  teacher: 'you@school.com',
-  admin: 'you@school.com',
-}
 
 export default function LoginPage() {
   const router = useRouter()
-  const [portal, setPortal] = useState<Portal>('student')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPass, setShowPass] = useState(false)
@@ -103,27 +88,7 @@ export default function LoginPage() {
           </div>
 
           <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-1">Sign in</h2>
-          <p className="text-[var(--text-secondary)] text-sm mb-8">Select your portal and enter your credentials</p>
-
-          {/* Portal selector */}
-          <div className="grid grid-cols-3 gap-2 mb-6">
-            {PORTALS.map(p => {
-              const Icon = p.icon
-              return (
-                <button
-                  key={p.id}
-                  onClick={() => setPortal(p.id as Portal)}
-                  className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all text-sm font-medium ${portal === p.id
-                    ? 'border-indigo-500 text-[var(--text-primary)]'
-                    : 'border-[var(--border)] text-[var(--text-secondary)] hover:border-indigo-500/50'}`}
-                  style={portal === p.id ? { background: `${p.color}18`, borderColor: p.color, color: p.color } : {}}
-                >
-                  <Icon size={18} />
-                  <span>{p.label}</span>
-                </button>
-              )
-            })}
-          </div>
+          <p className="text-[var(--text-secondary)] text-sm mb-8">Enter your credentials to continue</p>
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
@@ -131,7 +96,7 @@ export default function LoginPage() {
               <input
                 type="email"
                 className="input"
-                placeholder={EMAIL_PLACEHOLDERS[portal]}
+                placeholder="you@school.com"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 required

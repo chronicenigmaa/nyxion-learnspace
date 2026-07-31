@@ -3,7 +3,7 @@ import os
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.db.database import get_db
-from app.models.models import User, Role, Assignment, Submission, Attendance, Note, Event, AssignmentStatus, SubmissionStatus
+from app.models.models import User, Role, Assignment, Submission, Attendance, Note, Event, AssignmentStatus, SubmissionStatus, ParentChild
 from app.core.security import get_current_user, hash_password
 from app.core.logging_client import log_event
 from datetime import datetime, timedelta
@@ -66,6 +66,34 @@ def seed_demo(
             "role": Role.school_admin,
             "avatar_color": "#f59e0b",
         },
+        # A demo family for the parent portal. The roll numbers deliberately
+        # match the EduOS demo students so the EduOS → LearnSpace parent-link
+        # sync has a real pair to reconcile.
+        {
+            "name": "Hassan Ali",
+            "email": "parent@demo.com",
+            "password": "demo123",
+            "role": Role.parent,
+            "avatar_color": "#8b5cf6",
+        },
+        {
+            "name": "Ali Hassan",
+            "email": "ali.hassan@demo.com",
+            "password": "demo123",
+            "role": Role.student,
+            "class_name": "Class 8A",
+            "roll_number": "TCS-001",
+            "avatar_color": "#0ea5e9",
+        },
+        {
+            "name": "Zainab Hassan",
+            "email": "zainab.hassan@demo.com",
+            "password": "demo123",
+            "role": Role.student,
+            "class_name": "Class 6A",
+            "roll_number": "TCS-004",
+            "avatar_color": "#ec4899",
+        },
     ]
     for data in demo_users:
         user = db.query(User).filter(User.email == data["email"]).first()
@@ -83,6 +111,25 @@ def seed_demo(
         user.avatar_color = data["avatar_color"]
         user.is_active = True
         db.flush()
+
+    # ── DEMO PARENT → CHILDREN
+    # Matches the family EduOS seeds, so signing in as parent@demo.com shows a
+    # populated parent portal even before the EduOS sync has ever run.
+    demo_parent = db.query(User).filter(User.email == "parent@demo.com").first()
+    if demo_parent:
+        for roll_number in ["TCS-001", "TCS-004"]:
+            child = db.query(User).filter(
+                User.role == Role.student,
+                User.roll_number == roll_number,
+            ).first()
+            if not child:
+                continue
+            already_linked = db.query(ParentChild).filter(
+                ParentChild.parent_id == demo_parent.id,
+                ParentChild.student_id == child.id,
+            ).first()
+            if not already_linked:
+                db.add(ParentChild(parent_id=demo_parent.id, student_id=child.id))
 
     # Remove legacy local Al Noor student fallbacks so those accounts must authenticate via EduOS.
     for legacy_email in [

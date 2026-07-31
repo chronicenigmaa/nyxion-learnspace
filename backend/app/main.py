@@ -1,3 +1,5 @@
+import asyncio
+import logging
 import os
 import time
 
@@ -12,7 +14,8 @@ from app.api.v1.endpoints import (
     exams, notes, events, seed, ai, timetable, coursebooks,
     parents, admin,
 )
-from app.db.database import engine, Base, ensure_schema
+from app.db.database import engine, Base, ensure_schema, SessionLocal
+from app.services.eduos_sync import sync_parent_links, SyncDisabled
 
 ensure_schema(engine)          # must precede create_all — SQLAlchemy won't create the schema
 Base.metadata.create_all(bind=engine)
@@ -83,3 +86,63 @@ app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 @app.get("/health")
 def health():
     return {"status": "ok", "service": "Nyxion LearnSpace"}
+
+
+# 6) EduOS parent-link sync
+# Runs on a timer because EduOS is the system of record for who a student's
+# parent is; see app/services/eduos_sync.py. Disabled unless both EDUOS_API_URL
+# and EDUOS_SERVICE_TOKEN are set.
+sync_logger = logging.getLogger("learnspace.eduos_sync")
+SYNC_INTERVAL_MINUTES = int(os.getenv("EDUOS_SYNC_INTERVAL_MINUTES", "30"))
+SYNC_STATUS = {"last_run": None, "last_result": None, "last_error": None}
+
+
+def _run_parent_sync_once():
+    db = SessionLocal()
+    try:
+        report = sync_parent_links(db)
+        SYNC_STATUS.update({"last_result": report, "last_error": None})
+        sync_logger.info(
+            "EduOS parent sync: %s parents, +%s links, -%s links, %s unmatched parents, %s unmatched children",
+            report["parents_synced"], report["links_created"], report["links_removed"],
+            len(report["unmatched_parents"]), len(report["unmatched_children"]),
+        )
+        return report
+    finally:
+        db.close()
+
+
+async def _parent_sync_loop():
+    interval = max(SYNC_INTERVAL_MINUTES, 1) * 60
+    while True:
+        try:
+            # The sync is blocking (httpx + SQLAlchemy), so keep it off the event loop.
+            await asyncio.to_thread(_run_parent_sync_once)
+        except SyncDisabled as exc:
+            sync_logger.info("EduOS parent sync disabled: %s", exc)
+            return
+        except Exception as exc:
+            # Never let a failed run kill the loop — the next tick retries.
+            SYNC_STATUS["last_error"] = str(exc)
+            sync_logger.exception("EduOS parent sync failed; retrying in %s minutes", interval // 60)
+        finally:
+            SYNC_STATUS["last_run"] = time.time()
+        await asyncio.sleep(interval)
+
+
+@app.on_event("startup")
+async def start_parent_sync():
+    if not os.getenv("EDUOS_API_URL") or not os.getenv("EDUOS_SERVICE_TOKEN"):
+        sync_logger.info("EduOS parent sync not configured; skipping scheduler")
+        return
+    asyncio.create_task(_parent_sync_loop())
+
+
+@app.get("/health/eduos-sync")
+def health_eduos_sync():
+    """Last sync outcome — the only way to notice a silently failing job."""
+    return {
+        "configured": bool(os.getenv("EDUOS_API_URL") and os.getenv("EDUOS_SERVICE_TOKEN")),
+        "interval_minutes": SYNC_INTERVAL_MINUTES,
+        **SYNC_STATUS,
+    }
