@@ -52,7 +52,7 @@ class User(Base):
     name = Column(String, nullable=False)
     email = Column(String, unique=True, nullable=False)
     password_hash = Column(String, nullable=False)
-    role = Column(SAEnum(Role), default=Role.student)
+    role = Column(SAEnum(Role, inherit_schema=True), default=Role.student)
     school_id = Column(String, nullable=True)
     subject = Column(String, nullable=True)  # for teachers
     class_name = Column(String, nullable=True)  # for students
@@ -76,7 +76,7 @@ class Assignment(Base):
     teacher_id = Column(UUID(as_uuid=True), ForeignKey("users.id"))
     due_date = Column(DateTime, nullable=False)
     max_marks = Column(Float, default=100)
-    status = Column(SAEnum(AssignmentStatus), default=AssignmentStatus.draft)
+    status = Column(SAEnum(AssignmentStatus, inherit_schema=True), default=AssignmentStatus.draft)
     allow_late = Column(Boolean, default=False)
     attachments = Column(JSON, default=[])  # list of file paths
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -92,7 +92,7 @@ class Submission(Base):
     student_id = Column(UUID(as_uuid=True), ForeignKey("users.id"))
     content = Column(Text)
     files = Column(JSON, default=[])  # list of uploaded file paths
-    status = Column(SAEnum(SubmissionStatus), default=SubmissionStatus.not_submitted)
+    status = Column(SAEnum(SubmissionStatus, inherit_schema=True), default=SubmissionStatus.not_submitted)
     submitted_at = Column(DateTime, nullable=True)
     marks_obtained = Column(Float, nullable=True)
     feedback = Column(Text, nullable=True)
@@ -129,7 +129,7 @@ class Exam(Base):
     duration_minutes = Column(Integer, default=60)
     total_marks = Column(Float, default=100)
     scheduled_at = Column(DateTime)
-    status = Column(SAEnum(ExamStatus), default=ExamStatus.scheduled)
+    status = Column(SAEnum(ExamStatus, inherit_schema=True), default=ExamStatus.scheduled)
     questions = Column(JSON, default=[])  # list of question objects
     # Exam restrictions
     restrict_tab_switch = Column(Boolean, default=True)

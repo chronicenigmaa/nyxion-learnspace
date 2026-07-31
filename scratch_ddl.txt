@@ -1,0 +1,29 @@
+CREATE TYPE role AS ENUM ('super_admin', 'school_admin', 'teacher', 'student', 'parent');
+
+CREATE TYPE assignmentstatus AS ENUM ('draft', 'published', 'closed');
+
+CREATE TYPE submissionstatus AS ENUM ('not_submitted', 'submitted', 'late', 'graded');
+
+CREATE TYPE examstatus AS ENUM ('scheduled', 'live', 'ended');
+
+CREATE TABLE IF NOT EXISTS learnspace.users ( id UUID NOT NULL, name VARCHAR NOT NULL, email VARCHAR NOT NULL, password_hash VARCHAR NOT NULL, role role, school_id VARCHAR, subject VARCHAR, class_name VARCHAR, roll_number VARCHAR, avatar_color VARCHAR, is_active BOOLEAN, created_at TIMESTAMP WITHOUT TIME ZONE, PRIMARY KEY (id), UNIQUE (email) );
+
+CREATE TABLE IF NOT EXISTS learnspace.events ( id UUID NOT NULL, title VARCHAR NOT NULL, description TEXT, event_type VARCHAR, date VARCHAR NOT NULL, end_date VARCHAR, color VARCHAR, all_day BOOLEAN, created_by UUID, created_at TIMESTAMP WITHOUT TIME ZONE, PRIMARY KEY (id) );
+
+CREATE TABLE IF NOT EXISTS learnspace.timetable ( id UUID NOT NULL, day VARCHAR NOT NULL, period VARCHAR NOT NULL, subject VARCHAR NOT NULL, teacher_name VARCHAR, class_name VARCHAR NOT NULL, start_time VARCHAR, end_time VARCHAR, school_id VARCHAR, created_by UUID, created_at TIMESTAMP WITHOUT TIME ZONE, PRIMARY KEY (id) );
+
+CREATE TABLE IF NOT EXISTS learnspace.coursebooks ( id UUID NOT NULL, title VARCHAR NOT NULL, subject VARCHAR, class_name VARCHAR, description TEXT, file_path VARCHAR, file_name VARCHAR, uploaded_by VARCHAR, school_id VARCHAR, created_at TIMESTAMP WITHOUT TIME ZONE, PRIMARY KEY (id) );
+
+CREATE TABLE IF NOT EXISTS learnspace.parent_children ( id UUID NOT NULL, parent_id UUID NOT NULL, student_id UUID NOT NULL, created_at TIMESTAMP WITHOUT TIME ZONE, PRIMARY KEY (id), CONSTRAINT uq_parent_student UNIQUE (parent_id, student_id), FOREIGN KEY(parent_id) REFERENCES learnspace.users (id), FOREIGN KEY(student_id) REFERENCES learnspace.users (id) );
+
+CREATE TABLE IF NOT EXISTS learnspace.assignments ( id UUID NOT NULL, title VARCHAR NOT NULL, description TEXT, subject VARCHAR, class_name VARCHAR, teacher_id UUID, due_date TIMESTAMP WITHOUT TIME ZONE NOT NULL, max_marks FLOAT, status assignmentstatus, allow_late BOOLEAN, attachments JSON, created_at TIMESTAMP WITHOUT TIME ZONE, PRIMARY KEY (id), FOREIGN KEY(teacher_id) REFERENCES learnspace.users (id) );
+
+CREATE TABLE IF NOT EXISTS learnspace.attendance ( id UUID NOT NULL, student_id UUID, class_name VARCHAR, subject VARCHAR, date VARCHAR, is_present BOOLEAN, marked_by UUID, created_at TIMESTAMP WITHOUT TIME ZONE, PRIMARY KEY (id), FOREIGN KEY(student_id) REFERENCES learnspace.users (id) );
+
+CREATE TABLE IF NOT EXISTS learnspace.exams ( id UUID NOT NULL, title VARCHAR NOT NULL, subject VARCHAR, class_name VARCHAR, teacher_id UUID, duration_minutes INTEGER, total_marks FLOAT, scheduled_at TIMESTAMP WITHOUT TIME ZONE, status examstatus, questions JSON, restrict_tab_switch BOOLEAN, restrict_copy_paste BOOLEAN, restrict_right_click BOOLEAN, fullscreen_required BOOLEAN, max_tab_warnings INTEGER, shuffle_questions BOOLEAN, created_at TIMESTAMP WITHOUT TIME ZONE, PRIMARY KEY (id), FOREIGN KEY(teacher_id) REFERENCES learnspace.users (id) );
+
+CREATE TABLE IF NOT EXISTS learnspace.notes ( id UUID NOT NULL, title VARCHAR NOT NULL, description TEXT, subject VARCHAR, class_name VARCHAR, teacher_id UUID, files JSON, created_at TIMESTAMP WITHOUT TIME ZONE, PRIMARY KEY (id), FOREIGN KEY(teacher_id) REFERENCES learnspace.users (id) );
+
+CREATE TABLE IF NOT EXISTS learnspace.submissions ( id UUID NOT NULL, assignment_id UUID, student_id UUID, content TEXT, files JSON, status submissionstatus, submitted_at TIMESTAMP WITHOUT TIME ZONE, marks_obtained FLOAT, feedback TEXT, plagiarism_score FLOAT, plagiarism_report JSON, graded_at TIMESTAMP WITHOUT TIME ZONE, graded_by UUID, PRIMARY KEY (id), FOREIGN KEY(assignment_id) REFERENCES learnspace.assignments (id), FOREIGN KEY(student_id) REFERENCES learnspace.users (id) );
+
+CREATE TABLE IF NOT EXISTS learnspace.exam_attempts ( id UUID NOT NULL, exam_id UUID, student_id UUID, answers JSON, started_at TIMESTAMP WITHOUT TIME ZONE, submitted_at TIMESTAMP WITHOUT TIME ZONE, score FLOAT, tab_switch_count INTEGER, violations JSON, is_terminated BOOLEAN, termination_reason VARCHAR, PRIMARY KEY (id), FOREIGN KEY(exam_id) REFERENCES learnspace.exams (id), FOREIGN KEY(student_id) REFERENCES learnspace.users (id) );
