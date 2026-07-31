@@ -188,8 +188,8 @@ export default function LiveExamPage() {
     <div className="min-h-screen flex items-center justify-center p-6" style={{ background: 'var(--surface-900)' }}>
       <div className="w-full max-w-lg card p-8 animate-slide-up">
         <NyxionLogo size="sm" sub="LearnSpace" />
-        <h1 className="text-2xl font-bold text-white font-display mt-6 mb-1">{exam?.title}</h1>
-        <p className="text-slate-400 text-sm mb-6">{exam?.subject} · {exam?.class_name}</p>
+        <h1 className="text-2xl font-bold text-[var(--text-primary)] font-display mt-6 mb-1">{exam?.title}</h1>
+        <p className="text-[var(--text-secondary)] text-sm mb-6">{exam?.subject} · {exam?.class_name}</p>
 
         <div className="grid grid-cols-3 gap-3 mb-6">
           {[
@@ -198,17 +198,17 @@ export default function LiveExamPage() {
             ['Total Marks', exam?.total_marks],
           ].map(([l, v]) => (
             <div key={l} className="p-3 rounded-xl text-center" style={{ background: 'var(--surface-700)' }}>
-              <div className="text-xl font-bold text-white">{v}</div>
-              <div className="text-xs text-slate-400">{l}</div>
+              <div className="text-xl font-bold text-[var(--text-primary)]">{v}</div>
+              <div className="text-xs text-[var(--text-secondary)]">{l}</div>
             </div>
           ))}
         </div>
 
         <div className="p-4 rounded-xl border border-yellow-500/30 mb-6" style={{ background: 'rgba(245,158,11,0.08)' }}>
-          <h3 className="font-semibold text-yellow-400 text-sm mb-2 flex items-center gap-2">
+          <h3 className="font-semibold text-yellow-600 text-sm mb-2 flex items-center gap-2">
             <Shield size={14} /> Exam Rules & Restrictions
           </h3>
-          <ul className="space-y-1.5 text-xs text-slate-300">
+          <ul className="space-y-1.5 text-xs text-[var(--text-secondary)]">
             {exam?.fullscreen_required && <li>• Fullscreen mode will be activated and must be maintained</li>}
             {exam?.restrict_tab_switch && <li>• Switching tabs or windows will be logged. Max {exam?.max_tab_warnings} warnings before auto-termination</li>}
             {exam?.restrict_copy_paste && <li>• Copy, paste and cut operations are disabled</li>}
@@ -234,22 +234,22 @@ export default function LiveExamPage() {
       <div className="w-full max-w-md card p-8 text-center animate-slide-up">
         <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
           style={{ background: terminated ? 'rgba(239,68,68,0.15)' : 'rgba(16,185,129,0.15)' }}>
-          {terminated ? <AlertTriangle size={28} className="text-red-400" /> : <CheckCircle size={28} className="text-green-400" />}
+          {terminated ? <AlertTriangle size={28} className="text-red-600" /> : <CheckCircle size={28} className="text-green-600" />}
         </div>
-        <h2 className="text-2xl font-bold text-white font-display mb-2">
+        <h2 className="text-2xl font-bold text-[var(--text-primary)] font-display mb-2">
           {terminated ? 'Exam Terminated' : 'Exam Submitted!'}
         </h2>
-        <p className="text-slate-400 text-sm mb-6">
+        <p className="text-[var(--text-secondary)] text-sm mb-6">
           {terminated ? 'Your exam was terminated due to too many violations.' : 'Your responses have been saved successfully.'}
         </p>
         {score !== null && (
           <div className="p-4 rounded-xl mb-6" style={{ background: 'var(--surface-700)' }}>
-            <div className="text-sm text-slate-400">MCQ Auto-Score</div>
-            <div className="text-3xl font-bold text-white mt-1">{score} / {exam?.total_marks}</div>
-            <div className="text-xs text-slate-500 mt-1">Essay questions will be graded by your teacher</div>
+            <div className="text-sm text-[var(--text-secondary)]">MCQ Auto-Score</div>
+            <div className="text-3xl font-bold text-[var(--text-primary)] mt-1">{score} / {exam?.total_marks}</div>
+            <div className="text-xs text-[var(--text-muted)] mt-1">Essay questions will be graded by your teacher</div>
           </div>
         )}
-        {violations > 0 && <p className="text-yellow-400 text-sm mb-4">Total violations recorded: {violations}</p>}
+        {violations > 0 && <p className="text-yellow-600 text-sm mb-4">Total violations recorded: {violations}</p>}
         <button onClick={() => { router.push('/dashboard/exams') }} className="btn-primary w-full justify-center">
           Back to Dashboard
         </button>
@@ -267,18 +267,18 @@ export default function LiveExamPage() {
       <div className="flex items-center px-6 py-3 border-b border-[var(--border)] glass sticky top-0 z-10">
         <NyxionLogo size="sm" showText={false} />
         <div className="flex-1 mx-4">
-          <span className="text-sm font-medium text-white">{exam?.title}</span>
-          <span className="text-xs text-slate-400 ml-2">{exam?.subject}</span>
+          <span className="text-sm font-medium text-[var(--text-primary)]">{exam?.title}</span>
+          <span className="text-xs text-[var(--text-secondary)] ml-2">{exam?.subject}</span>
         </div>
 
         <div className="flex items-center gap-4">
           {violations > 0 && (
-            <div className="flex items-center gap-1.5 text-yellow-400 text-xs">
+            <div className="flex items-center gap-1.5 text-yellow-600 text-xs">
               <AlertTriangle size={13} />
               <span>{warningsLeft} warning{warningsLeft !== 1 ? 's' : ''} left</span>
             </div>
           )}
-          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg font-mono text-sm font-bold ${timeLeft < 300 ? 'text-red-400 bg-red-400/10' : 'text-white bg-[var(--surface-700)]'}`}>
+          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg font-mono text-sm font-bold ${timeLeft < 300 ? 'text-red-600 bg-red-400/10' : 'text-[var(--text-primary)] bg-[var(--surface-700)]'}`}>
             <Clock size={14} />
             {formatTime(timeLeft)}
           </div>
@@ -291,23 +291,23 @@ export default function LiveExamPage() {
       <div className="flex flex-1 overflow-hidden">
         {/* Question navigator */}
         <div className="hidden md:flex flex-col w-52 border-r border-[var(--border)] p-4 overflow-y-auto" style={{ background: 'var(--surface-850)' }}>
-          <div className="text-xs text-slate-400 uppercase tracking-wider mb-3">Questions</div>
+          <div className="text-xs text-[var(--text-secondary)] uppercase tracking-wider mb-3">Questions</div>
           <div className="grid grid-cols-5 gap-1.5">
             {questions.map((_: any, i: number) => (
               <button key={i} onClick={() => setCurrentQ(i)}
-                className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${currentQ === i ? 'bg-indigo-600 text-white' : answers[questions[i]?.id] ? 'bg-green-600/30 text-green-400 border border-green-600/40' : 'text-slate-400 border border-[var(--border)]'}`}
+                className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${currentQ === i ? 'bg-indigo-600 text-on-brand' : answers[questions[i]?.id] ? 'bg-green-600/30 text-green-600 border border-green-600/40' : 'text-[var(--text-secondary)] border border-[var(--border)]'}`}
                 style={currentQ !== i && !answers[questions[i]?.id] ? { background: 'var(--surface-700)' } : {}}>
                 {i + 1}
               </button>
             ))}
           </div>
-          <div className="mt-4 space-y-1.5 text-xs text-slate-500">
+          <div className="mt-4 space-y-1.5 text-xs text-[var(--text-muted)]">
             <div className="flex items-center gap-2"><div className="w-3 h-3 rounded bg-indigo-600" /> Current</div>
             <div className="flex items-center gap-2"><div className="w-3 h-3 rounded bg-green-600/30 border border-green-600/40" /> Answered</div>
             <div className="flex items-center gap-2"><div className="w-3 h-3 rounded border border-[var(--border)]" style={{ background: 'var(--surface-700)' }} /> Unanswered</div>
           </div>
           <div className="mt-auto pt-4 border-t border-[var(--border)]">
-            <div className="text-xs text-slate-400">{answered}/{questions.length} answered</div>
+            <div className="text-xs text-[var(--text-secondary)]">{answered}/{questions.length} answered</div>
             <div className="w-full h-1.5 rounded-full mt-1.5" style={{ background: 'var(--surface-600)' }}>
               <div className="h-full rounded-full bg-indigo-500 transition-all" style={{ width: `${(answered / questions.length) * 100}%` }} />
             </div>
@@ -318,14 +318,14 @@ export default function LiveExamPage() {
         <div className="flex-1 flex flex-col overflow-y-auto p-6 md:p-8">
           <div className="max-w-2xl mx-auto w-full">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-mono text-slate-500 uppercase">Question {currentQ + 1} of {questions.length}</span>
+              <span className="text-xs font-mono text-[var(--text-muted)] uppercase">Question {currentQ + 1} of {questions.length}</span>
               <div className="flex items-center gap-2">
                 <span className={`badge ${q.type === 'mcq' ? 'badge-blue' : q.type === 'short' ? 'badge-green' : 'badge-yellow'}`}>{q.type}</span>
-                <span className="text-xs text-slate-400">{q.marks} mark{q.marks !== 1 ? 's' : ''}</span>
+                <span className="text-xs text-[var(--text-secondary)]">{q.marks} mark{q.marks !== 1 ? 's' : ''}</span>
               </div>
             </div>
 
-            <p className="text-lg font-medium text-white mb-6 leading-relaxed">{q.question}</p>
+            <p className="text-lg font-medium text-[var(--text-primary)] mb-6 leading-relaxed">{q.question}</p>
 
             {q.type === 'mcq' && (
               <div className="space-y-2.5">
@@ -339,8 +339,8 @@ export default function LiveExamPage() {
                     <input type="radio" name={`q-${q.id}`} value={opt} className="hidden"
                       checked={answers[q.id] === opt}
                       onChange={() => setAnswers(a => ({ ...a, [q.id]: opt }))} />
-                    <span className="text-sm text-white">
-                      <span className="font-mono text-slate-400 mr-2">{String.fromCharCode(65 + oi)}.</span>
+                    <span className="text-sm text-[var(--text-primary)]">
+                      <span className="font-mono text-[var(--text-secondary)] mr-2">{String.fromCharCode(65 + oi)}.</span>
                       {opt}
                     </span>
                   </label>

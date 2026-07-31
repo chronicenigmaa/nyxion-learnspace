@@ -67,38 +67,41 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex" style={{ background: 'var(--surface-900)' }}>
-      {/* Left panel */}
+      {/* Left panel — deep indigo brand surface, deliberately the one dark
+          area of the product so the sign-in screen still reads as branded. */}
       <div className="hidden lg:flex flex-col justify-between w-[45%] p-12 relative overflow-hidden"
-        style={{ background: 'linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%)' }}>
+        style={{ background: 'linear-gradient(150deg, #312e81 0%, #4338ca 55%, #4f46e5 100%)' }}>
         {/* Decorative grid */}
-        <div className="absolute inset-0 opacity-10"
-          style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(99,102,241,0.5) 1px, transparent 0)', backgroundSize: '32px 32px' }} />
+        <div className="absolute inset-0 opacity-[0.18]"
+          style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.6) 1px, transparent 0)', backgroundSize: '32px 32px' }} />
 
         {/* Glow */}
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full opacity-20"
-          style={{ background: 'radial-gradient(circle, #6366f1 0%, transparent 70%)' }} />
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[28rem] h-[28rem] rounded-full opacity-40"
+          style={{ background: 'radial-gradient(circle, rgba(129,140,248,0.55) 0%, transparent 70%)' }} />
 
-        <NyxionLogo size="lg" sub="LearnSpace" />
+        <div className="relative z-10">
+          <NyxionLogo size="lg" sub="LearnSpace" tone="light" />
+        </div>
 
         <div className="relative z-10">
           <h1 className="font-display text-4xl font-bold text-white leading-tight mb-4">
             Your classroom,<br />
-            <span className="gradient-text">anywhere.</span>
+            <span className="text-indigo-200">anywhere.</span>
           </h1>
-          <p className="text-slate-400 text-lg leading-relaxed mb-8">
+          <p className="text-indigo-100/80 text-lg leading-relaxed mb-8">
             Assignments, exams, notes, attendance — all in one place for every student and teacher.
           </p>
           <div className="space-y-3">
             {['Submit & grade assignments', 'Live exams with anti-cheat', 'Download notes & slides', 'Track attendance & grades'].map(f => (
-              <div key={f} className="flex items-center gap-3 text-slate-300">
-                <div className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
+              <div key={f} className="flex items-center gap-3 text-indigo-100/90">
+                <div className="w-1.5 h-1.5 rounded-full bg-indigo-300" />
                 <span className="text-sm">{f}</span>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="text-slate-600 text-xs font-mono">
+        <div className="relative z-10 text-indigo-200/60 text-xs font-mono">
           Powered by Nyxion EduOS · nyxionlabs.com
         </div>
       </div>
@@ -110,8 +113,8 @@ export default function LoginPage() {
             <NyxionLogo size="md" sub="LearnSpace" />
           </div>
 
-          <h2 className="text-2xl font-bold text-white mb-1">Sign in</h2>
-          <p className="text-slate-400 text-sm mb-8">Select your portal and enter your credentials</p>
+          <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-1">Sign in</h2>
+          <p className="text-[var(--text-secondary)] text-sm mb-8">Select your portal and enter your credentials</p>
 
           {/* Portal selector */}
           <div className="grid grid-cols-3 gap-2 mb-6">
@@ -122,8 +125,8 @@ export default function LoginPage() {
                   key={p.id}
                   onClick={() => setPortal(p.id as Portal)}
                   className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all text-sm font-medium ${portal === p.id
-                    ? 'border-indigo-500 text-white'
-                    : 'border-[var(--border)] text-slate-400 hover:border-indigo-500/50'}`}
+                    ? 'border-indigo-500 text-[var(--text-primary)]'
+                    : 'border-[var(--border)] text-[var(--text-secondary)] hover:border-indigo-500/50'}`}
                   style={portal === p.id ? { background: `${p.color}18`, borderColor: p.color, color: p.color } : {}}
                 >
                   <Icon size={18} />
@@ -144,14 +147,14 @@ export default function LoginPage() {
                 onChange={e => setEmail(e.target.value)}
                 required
               />
-              <p className="mt-2 text-xs text-slate-400">
-                School accounts like <span className="text-slate-200">zara@alnooracademy.com</span> sign in with their EduOS credentials.
+              <p className="mt-2 text-xs text-[var(--text-secondary)]">
+                School accounts like <span className="text-[var(--text-primary)]">zara@alnooracademy.com</span> sign in with their EduOS credentials.
               </p>
             </div>
             <div>
               <div className="flex items-center justify-between mb-1">
                 <label className="label mb-0">Password</label>
-                <Link href="/auth/forgot-password" className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors">
+                <Link href="/auth/forgot-password" className="text-xs text-indigo-600 hover:text-indigo-700 transition-colors">
                   Forgot password?
                 </Link>
               </div>
@@ -165,7 +168,7 @@ export default function LoginPage() {
                   required
                 />
                 <button type="button" onClick={() => setShowPass(!showPass)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white">
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)] hover:text-[var(--text-primary)]">
                   {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
@@ -185,13 +188,13 @@ export default function LoginPage() {
 
           <div className="mt-6 p-4 rounded-xl border border-dashed border-indigo-500/30"
             style={{ background: 'rgba(99,102,241,0.05)' }}>
-            <p className="text-xs text-slate-400 mb-2 font-mono uppercase tracking-wider">Demo accounts</p>
-            <button onClick={fillDemo} className="text-indigo-400 text-sm hover:text-indigo-300 underline underline-offset-2">
+            <p className="text-xs text-[var(--text-secondary)] mb-2 font-mono uppercase tracking-wider">Demo accounts</p>
+            <button onClick={fillDemo} className="text-indigo-600 text-sm hover:text-indigo-700 underline underline-offset-2">
               Fill {portal} demo credentials
             </button>
           </div>
 
-          <p className="text-center text-slate-500 text-xs mt-8">
+          <p className="text-center text-[var(--text-muted)] text-xs mt-8">
             Part of Nyxion EduOS · Contact admin for account setup
           </p>
         </div>

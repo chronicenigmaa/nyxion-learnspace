@@ -56,18 +56,18 @@ export default function CreateAssignmentPage() {
   return (
     <div className="animate-fade-in max-w-2xl">
       <div className="flex items-center gap-3 mb-6">
-        <Link href="/dashboard/assignments" className="text-slate-400 hover:text-white transition-colors">
+        <Link href="/dashboard/assignments" className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">
           <ArrowLeft size={20} />
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-white font-display">New Assignment</h1>
-          <p className="text-slate-400 text-sm">Students will be notified when published</p>
+          <h1 className="text-2xl font-bold text-[var(--text-primary)] font-display">New Assignment</h1>
+          <p className="text-[var(--text-secondary)] text-sm">Students will be notified when published</p>
         </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
         <div className="card p-5 space-y-4">
-          <h3 className="font-semibold text-white text-sm uppercase tracking-wider text-slate-400">Details</h3>
+          <h3 className="font-semibold text-[var(--text-primary)] text-sm uppercase tracking-wider text-[var(--text-secondary)]">Details</h3>
 
           <div>
             <label className="label">Title *</label>
@@ -109,14 +109,14 @@ export default function CreateAssignmentPage() {
             style={{ background: 'var(--surface-700)' }}>
             <input type="checkbox" className="w-4 h-4 accent-indigo-500" checked={form.allow_late} onChange={e => set('allow_late', e.target.checked)} />
             <div>
-              <div className="text-sm font-medium text-white">Allow late submissions</div>
-              <div className="text-xs text-slate-400">Students can still submit after the deadline</div>
+              <div className="text-sm font-medium text-[var(--text-primary)]">Allow late submissions</div>
+              <div className="text-xs text-[var(--text-secondary)]">Students can still submit after the deadline</div>
             </div>
           </label>
         </div>
 
         <div className="card p-5 space-y-4">
-          <h3 className="font-semibold text-white text-sm uppercase tracking-wider text-slate-400">Deadline</h3>
+          <h3 className="font-semibold text-[var(--text-primary)] text-sm uppercase tracking-wider text-[var(--text-secondary)]">Deadline</h3>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -129,9 +129,9 @@ export default function CreateAssignmentPage() {
             </div>
           </div>
 
-          <div className="rounded-xl border border-[var(--border)] px-4 py-3 text-sm text-slate-400" style={{ background: 'var(--surface-700)' }}>
+          <div className="rounded-xl border border-[var(--border)] px-4 py-3 text-sm text-[var(--text-secondary)]" style={{ background: 'var(--surface-700)' }}>
             Students will see this assignment due on
-            <span className="ml-1 text-slate-200">
+            <span className="ml-1 text-[var(--text-primary)]">
               {form.due_date ? form.due_date : 'select a date'}
               {' '}
               {form.due_time || 'select a time'}
@@ -141,13 +141,13 @@ export default function CreateAssignmentPage() {
 
         {/* File attachments */}
         <div className="card p-5">
-          <h3 className="font-semibold text-white text-sm uppercase tracking-wider text-slate-400 mb-4">Attachments</h3>
+          <h3 className="font-semibold text-[var(--text-primary)] text-sm uppercase tracking-wider text-[var(--text-secondary)] mb-4">Attachments</h3>
           <label className="flex flex-col items-center gap-3 p-6 rounded-xl border-2 border-dashed border-[var(--border)] hover:border-indigo-500/50 transition-colors cursor-pointer"
             style={{ background: 'var(--surface-700)' }}>
-            <Upload size={24} className="text-indigo-400" />
+            <Upload size={24} className="text-indigo-600" />
             <div className="text-center">
-              <p className="text-sm font-medium text-white">Upload files</p>
-              <p className="text-xs text-slate-400 mt-0.5">PDF, DOCX, images, any format</p>
+              <p className="text-sm font-medium text-[var(--text-primary)]">Upload files</p>
+              <p className="text-xs text-[var(--text-secondary)] mt-0.5">PDF, DOCX, images, any format</p>
             </div>
             <input type="file" multiple className="hidden" onChange={handleFiles} />
           </label>
@@ -157,10 +157,10 @@ export default function CreateAssignmentPage() {
               {files.map((f, i) => (
                 <div key={i} className="flex items-center gap-3 p-2.5 rounded-lg"
                   style={{ background: 'var(--surface-600)' }}>
-                  <FileText size={14} className="text-indigo-400 flex-shrink-0" />
-                  <span className="text-sm text-white flex-1 truncate">{f.name}</span>
-                  <span className="text-xs text-slate-400">{(f.size / 1024).toFixed(0)} KB</span>
-                  <button type="button" onClick={() => removeFile(i)} className="text-slate-400 hover:text-red-400">
+                  <FileText size={14} className="text-indigo-600 flex-shrink-0" />
+                  <span className="text-sm text-[var(--text-primary)] flex-1 truncate">{f.name}</span>
+                  <span className="text-xs text-[var(--text-secondary)]">{(f.size / 1024).toFixed(0)} KB</span>
+                  <button type="button" onClick={() => removeFile(i)} className="text-[var(--text-secondary)] hover:text-red-600">
                     <X size={14} />
                   </button>
                 </div>

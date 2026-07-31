@@ -37,8 +37,8 @@ export default function ExamsPage() {
     <div className="animate-fade-in space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white font-display">Exams</h1>
-          <p className="text-slate-400 text-sm mt-0.5">{isTeacher ? 'Schedule and monitor live exams' : 'Your upcoming exams'}</p>
+          <h1 className="text-2xl font-bold text-[var(--text-primary)] font-display">Exams</h1>
+          <p className="text-[var(--text-secondary)] text-sm mt-0.5">{isTeacher ? 'Schedule and monitor live exams' : 'Your upcoming exams'}</p>
         </div>
         {isTeacher && (
           <Link href="/dashboard/exams/create" className="btn-primary">
@@ -51,8 +51,8 @@ export default function ExamsPage() {
         <div className="space-y-3">{[1,2,3].map(i => <div key={i} className="skeleton h-24 rounded-xl" />)}</div>
       ) : exams.length === 0 ? (
         <div className="card p-12 text-center">
-          <ClipboardList size={32} className="text-slate-600 mx-auto mb-3" />
-          <p className="text-slate-400">No exams scheduled</p>
+          <ClipboardList size={32} className="text-[var(--text-muted)] mx-auto mb-3" />
+          <p className="text-[var(--text-secondary)]">No exams scheduled</p>
           {isTeacher && <Link href="/dashboard/exams/create" className="btn-primary mt-4 inline-flex">Create first exam</Link>}
         </div>
       ) : (
@@ -65,7 +65,7 @@ export default function ExamsPage() {
                 <div className="flex items-start gap-4">
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
                     style={{ background: exam.status === 'live' ? 'rgba(239,68,68,0.15)' : 'rgba(99,102,241,0.15)' }}>
-                    <ClipboardList size={18} className={exam.status === 'live' ? 'text-red-400' : 'text-indigo-400'} />
+                    <ClipboardList size={18} className={exam.status === 'live' ? 'text-red-600' : 'text-indigo-600'} />
                   </div>
 
                   <div className="flex-1 min-w-0">
@@ -73,9 +73,9 @@ export default function ExamsPage() {
                       <div>
                         <div className="flex items-center gap-2">
                           {exam.status === 'live' && <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />}
-                          <h3 className="font-semibold text-white">{exam.title}</h3>
+                          <h3 className="font-semibold text-[var(--text-primary)]">{exam.title}</h3>
                         </div>
-                        <p className="text-xs text-slate-400 mt-0.5">
+                        <p className="text-xs text-[var(--text-secondary)] mt-0.5">
                           {exam.subject} · {exam.class_name} · {exam.duration_minutes} min · {exam.question_count} questions
                         </p>
                       </div>
@@ -83,7 +83,7 @@ export default function ExamsPage() {
                     </div>
 
                     <div className="flex items-center gap-4 mt-2">
-                      <span className="text-xs text-slate-400 font-mono">
+                      <span className="text-xs text-[var(--text-secondary)] font-mono">
                         {exam.status === 'scheduled' ? `Starts ${formatDistanceToNow(scheduled, { addSuffix: true })}` : format(scheduled, 'MMM d, h:mm a')}
                       </span>
                       <div className="flex items-center gap-1">
@@ -107,7 +107,7 @@ export default function ExamsPage() {
                           </button>
                         )}
                         <Link href={`/dashboard/exams/${exam.id}/results`}
-                          className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-[var(--surface-700)] transition-all">
+                          className="p-2 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-700)] transition-all">
                           <Eye size={16} />
                         </Link>
                       </>
@@ -117,7 +117,7 @@ export default function ExamsPage() {
                           Enter Exam
                         </Link>
                       ) : (
-                        <span className="text-xs text-slate-500">
+                        <span className="text-xs text-[var(--text-muted)]">
                           {exam.status === 'scheduled' ? 'Not started' : 'Exam ended'}
                         </span>
                       )

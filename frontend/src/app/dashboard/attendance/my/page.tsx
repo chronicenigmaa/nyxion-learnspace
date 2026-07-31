@@ -36,24 +36,24 @@ export default function MyAttendancePage() {
   return (
     <div className="animate-fade-in space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-white font-display">My Attendance</h1>
-        <button onClick={load} className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-[var(--surface-700)] transition-all">
+        <h1 className="text-2xl font-bold text-[var(--text-primary)] font-display">My Attendance</h1>
+        <button onClick={load} className="p-2 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-700)] transition-all">
           <RefreshCw size={16} />
         </button>
       </div>
 
       {error ? (
         <div className="card p-12 text-center">
-          <AlertTriangle size={32} className="text-red-400 mx-auto mb-3" />
-          <p className="text-slate-300 font-medium">Failed to load attendance</p>
-          <p className="text-slate-500 text-sm mt-1">Check your connection and try again.</p>
+          <AlertTriangle size={32} className="text-red-600 mx-auto mb-3" />
+          <p className="text-[var(--text-secondary)] font-medium">Failed to load attendance</p>
+          <p className="text-[var(--text-muted)] text-sm mt-1">Check your connection and try again.</p>
           <button onClick={load} className="btn-secondary mt-4">Retry</button>
         </div>
       ) : !data || data.total === 0 ? (
         <div className="card p-12 text-center">
-          <Calendar size={32} className="text-slate-600 mx-auto mb-3" />
-          <p className="text-slate-300 font-medium">No attendance records yet</p>
-          <p className="text-slate-500 text-sm mt-1">Your attendance will appear here once your teacher marks it.</p>
+          <Calendar size={32} className="text-[var(--text-muted)] mx-auto mb-3" />
+          <p className="text-[var(--text-secondary)] font-medium">No attendance records yet</p>
+          <p className="text-[var(--text-muted)] text-sm mt-1">Your attendance will appear here once your teacher marks it.</p>
         </div>
       ) : (
         <>
@@ -66,33 +66,33 @@ export default function MyAttendancePage() {
             ].map(s => (
               <div key={s.label} className="card p-4 text-center">
                 <div className="text-2xl font-bold font-display" style={{ color: s.color }}>{s.value}</div>
-                <div className="text-xs text-slate-400 mt-1">{s.label}</div>
+                <div className="text-xs text-[var(--text-secondary)] mt-1">{s.label}</div>
               </div>
             ))}
           </div>
 
           {data.percentage > 0 && data.percentage < 75 && (
             <div className="card p-4 border border-yellow-500/30 flex items-center gap-3" style={{ background: 'rgba(245,158,11,0.08)' }}>
-              <AlertTriangle size={18} className="text-yellow-400 flex-shrink-0" />
+              <AlertTriangle size={18} className="text-yellow-600 flex-shrink-0" />
               <div>
-                <p className="text-yellow-400 font-semibold text-sm">Low Attendance Warning</p>
-                <p className="text-slate-400 text-xs">Your attendance is below 75%. Please attend regularly to avoid issues.</p>
+                <p className="text-yellow-600 font-semibold text-sm">Low Attendance Warning</p>
+                <p className="text-[var(--text-secondary)] text-xs">Your attendance is below 75%. Please attend regularly to avoid issues.</p>
               </div>
             </div>
           )}
 
           <div className="card overflow-hidden">
-            <div className="px-5 py-3 border-b border-[var(--border)] grid grid-cols-3 text-xs text-slate-400 uppercase tracking-wider font-semibold">
+            <div className="px-5 py-3 border-b border-[var(--border)] grid grid-cols-3 text-xs text-[var(--text-secondary)] uppercase tracking-wider font-semibold">
               <span>Date</span><span>Subject</span><span>Status</span>
             </div>
             {data.records.length === 0 ? (
-              <div className="px-5 py-8 text-center text-slate-500 text-sm">No records to display</div>
+              <div className="px-5 py-8 text-center text-[var(--text-muted)] text-sm">No records to display</div>
             ) : (
               data.records.slice().reverse().map((r: any, i: number) => (
                 <div key={i} className="px-5 py-3 border-b border-[var(--border)] last:border-0 grid grid-cols-3 items-center hover:bg-[var(--surface-700)] transition-colors">
-                  <span className="text-sm text-slate-300 font-mono">{r.date}</span>
-                  <span className="text-sm text-slate-400">{r.subject || '—'}</span>
-                  <span className={`flex items-center gap-1.5 text-sm font-medium ${r.is_present ? 'text-green-400' : 'text-red-400'}`}>
+                  <span className="text-sm text-[var(--text-secondary)] font-mono">{r.date}</span>
+                  <span className="text-sm text-[var(--text-secondary)]">{r.subject || '—'}</span>
+                  <span className={`flex items-center gap-1.5 text-sm font-medium ${r.is_present ? 'text-green-600' : 'text-red-600'}`}>
                     {r.is_present ? <><CheckCircle size={13} /> Present</> : <><XCircle size={13} /> Absent</>}
                   </span>
                 </div>

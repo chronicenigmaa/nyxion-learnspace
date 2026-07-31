@@ -62,8 +62,8 @@ export default function AssignmentsPage() {
     <div className="animate-fade-in space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white font-display">Assignments</h1>
-          <p className="text-slate-400 text-sm mt-0.5">{filtered.length} assignment{filtered.length !== 1 ? 's' : ''}</p>
+          <h1 className="text-2xl font-bold text-[var(--text-primary)] font-display">Assignments</h1>
+          <p className="text-[var(--text-secondary)] text-sm mt-0.5">{filtered.length} assignment{filtered.length !== 1 ? 's' : ''}</p>
         </div>
 // Find this:
 {isTeacher && (
@@ -90,7 +90,7 @@ export default function AssignmentsPage() {
       <div className="flex gap-2 flex-wrap">
         {FILTERS.map(f => (
           <button key={f} onClick={() => setFilter(f)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all ${filter === f ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white border border-[var(--border)]'}`}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all ${filter === f ? 'bg-indigo-600 text-on-brand' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--border)]'}`}
             style={filter === f ? {} : { background: 'var(--surface-700)' }}>
             {f}
           </button>
@@ -103,8 +103,8 @@ export default function AssignmentsPage() {
         </div>
       ) : filtered.length === 0 ? (
         <div className="card p-12 text-center">
-          <FileText size={32} className="text-slate-600 mx-auto mb-3" />
-          <p className="text-slate-400">No assignments found</p>
+          <FileText size={32} className="text-[var(--text-muted)] mx-auto mb-3" />
+          <p className="text-[var(--text-secondary)]">No assignments found</p>
           {isTeacher && <Link href="/dashboard/assignments/create" className="btn-primary mt-4 inline-flex">Create one</Link>}
         </div>
       ) : (
@@ -125,15 +125,15 @@ export default function AssignmentsPage() {
                 <div className="flex items-start gap-4">
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
                     style={{ background: 'rgba(99,102,241,0.15)' }}>
-                    <FileText size={18} className="text-indigo-400" />
+                    <FileText size={18} className="text-indigo-600" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <h3 className="font-semibold text-white group-hover:text-indigo-300 transition-colors">
+                        <h3 className="font-semibold text-[var(--text-primary)] group-hover:text-indigo-700 transition-colors">
                           {a.title}
                         </h3>
-                        <p className="text-xs text-slate-400 mt-0.5">
+                        <p className="text-xs text-[var(--text-secondary)] mt-0.5">
                           {a.subject} · {a.class_name} · {a.max_marks} marks
                           {isTeacher && ` · ${a.submission_count} submissions`}
                         </p>
@@ -143,7 +143,7 @@ export default function AssignmentsPage() {
                         {overdue && <span className="badge badge-red"><AlertTriangle size={10} className="mr-1" />Overdue</span>}
                       </div>
                     </div>
-                    <p className="text-xs text-slate-500 mt-2">{dueText} · {format(due, 'MMM d, yyyy h:mm a')}</p>
+                    <p className="text-xs text-[var(--text-muted)] mt-2">{dueText} · {format(due, 'MMM d, yyyy h:mm a')}</p>
 
                     {/* Attachments */}
                     {a.attachments?.length > 0 && (
@@ -151,7 +151,7 @@ export default function AssignmentsPage() {
                         {a.attachments.map((f: any) => (
                           <a key={f.id} href={f.path} download={f.name}
                             onClick={e => e.stopPropagation()}
-                            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs text-indigo-400 hover:text-indigo-300 border border-indigo-500/20 hover:border-indigo-500/50 transition-colors"
+                            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs text-indigo-600 hover:text-indigo-700 border border-indigo-500/20 hover:border-indigo-500/50 transition-colors"
                             style={{ background: 'rgba(99,102,241,0.08)' }}>
                             <Download size={11} /> {f.name}
                           </a>
@@ -163,22 +163,22 @@ export default function AssignmentsPage() {
                   <div className="flex items-center gap-1 flex-shrink-0">
                     <Link href={`/dashboard/assignments/${a.id}`}
                       onClick={e => e.stopPropagation()}
-                      className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-[var(--surface-700)] transition-all">
+                      className="p-2 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-700)] transition-all">
                       <Eye size={16} />
                     </Link>
                     {isTeacher && (
                       <>
                         <Link href={`/dashboard/assignments/edit/${a.id}`}
                           onClick={e => e.stopPropagation()}
-                          className="p-2 rounded-lg text-slate-400 hover:text-amber-400 hover:bg-amber-400/10 transition-all">
+                          className="p-2 rounded-lg text-[var(--text-secondary)] hover:text-amber-600 hover:bg-amber-400/10 transition-all">
                           <Pencil size={16} />
                         </Link>
                         <button onClick={e => { e.stopPropagation(); handleToggleStatus(a) }}
-                          className="p-2 rounded-lg text-slate-400 hover:text-indigo-400 hover:bg-indigo-400/10 transition-all">
+                          className="p-2 rounded-lg text-[var(--text-secondary)] hover:text-indigo-600 hover:bg-indigo-400/10 transition-all">
                           {a.status === 'published' ? <ToggleRight size={16} /> : <ToggleLeft size={16} />}
                         </button>
                         <button onClick={e => { e.stopPropagation(); handleDelete(a.id) }}
-                          className="p-2 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-400/10 transition-all">
+                          className="p-2 rounded-lg text-[var(--text-secondary)] hover:text-red-600 hover:bg-red-400/10 transition-all">
                           <Trash2 size={16} />
                         </button>
                       </>

@@ -98,8 +98,8 @@ export default function ParentsAdminPage() {
   if (!isAdmin) {
     return (
       <div className="rounded-2xl border border-[var(--border)] p-6" style={{ background: 'var(--surface-850)' }}>
-        <h1 className="text-xl font-bold text-white">Parents</h1>
-        <p className="mt-2 text-sm text-slate-400">Only admins can manage parent accounts.</p>
+        <h1 className="text-xl font-bold text-[var(--text-primary)]">Parents</h1>
+        <p className="mt-2 text-sm text-[var(--text-secondary)]">Only admins can manage parent accounts.</p>
       </div>
     )
   }
@@ -108,8 +108,8 @@ export default function ParentsAdminPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white">Parents</h1>
-          <p className="text-sm text-slate-400">Create parent accounts and link them to students.</p>
+          <h1 className="text-2xl font-bold text-[var(--text-primary)]">Parents</h1>
+          <p className="text-sm text-[var(--text-secondary)]">Create parent accounts and link them to students.</p>
         </div>
         <button onClick={() => setShowCreate(v => !v)} className="btn-primary flex items-center gap-2">
           <UserPlus size={16} /> New parent
@@ -119,7 +119,7 @@ export default function ParentsAdminPage() {
       {/* Create form */}
       {showCreate && (
         <section className="rounded-2xl border border-[var(--border)] p-5 space-y-4" style={{ background: 'var(--surface-850)' }}>
-          <h2 className="text-lg font-semibold text-white">New parent account</h2>
+          <h2 className="text-lg font-semibold text-[var(--text-primary)]">New parent account</h2>
           <div className="grid gap-3 md:grid-cols-3">
             <div>
               <label className="label">Full name</label>
@@ -142,15 +142,15 @@ export default function ParentsAdminPage() {
                 const on = selectedChildIds.includes(s.id)
                 return (
                   <button key={s.id} onClick={() => toggleChild(s.id)}
-                    className={`flex items-center justify-between rounded-lg px-3 py-2 text-left text-sm border transition-colors ${on ? 'border-indigo-500 text-white' : 'border-[var(--border)] text-slate-300 hover:bg-[var(--surface-900)]'}`}
+                    className={`flex items-center justify-between rounded-lg px-3 py-2 text-left text-sm border transition-colors ${on ? 'border-indigo-500 text-[var(--text-primary)]' : 'border-[var(--border)] text-[var(--text-secondary)] hover:bg-[var(--surface-900)]'}`}
                     style={on ? { background: 'rgba(99,102,241,0.15)' } : {}}>
                     <span className="min-w-0">
                       <span className="block truncate">{s.name}</span>
-                      <span className="block text-xs text-slate-500">
+                      <span className="block text-xs text-[var(--text-muted)]">
                         {s.class_name || 'No class'}{s.roll_number ? ` · ${s.roll_number}` : ''}
                       </span>
                     </span>
-                    {on && <Check size={14} className="text-indigo-400 flex-shrink-0" />}
+                    {on && <Check size={14} className="text-indigo-600 flex-shrink-0" />}
                   </button>
                 )
               })}
@@ -170,26 +170,26 @@ export default function ParentsAdminPage() {
       <section className="rounded-2xl border border-[var(--border)] p-5" style={{ background: 'var(--surface-850)' }}>
         <div className="mb-4 flex items-center gap-3">
           <div className="rounded-xl p-2" style={{ background: 'rgba(99,102,241,0.15)' }}>
-            <Users size={18} className="text-indigo-300" />
+            <Users size={18} className="text-indigo-700" />
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-white">Parent accounts</h2>
-            <p className="text-sm text-slate-400">Each parent and the children linked to them.</p>
+            <h2 className="text-lg font-semibold text-[var(--text-primary)]">Parent accounts</h2>
+            <p className="text-sm text-[var(--text-secondary)]">Each parent and the children linked to them.</p>
           </div>
         </div>
 
         {loading ? (
-          <p className="text-sm text-slate-400">Loading parents…</p>
+          <p className="text-sm text-[var(--text-secondary)]">Loading parents…</p>
         ) : parents.length === 0 ? (
-          <p className="text-sm text-slate-500">No parents yet. Create one above.</p>
+          <p className="text-sm text-[var(--text-muted)]">No parents yet. Create one above.</p>
         ) : (
           <div className="space-y-3">
             {parents.map(p => (
               <div key={p.id} className="rounded-xl border border-[var(--border)] p-4">
                 <div className="flex items-center justify-between gap-3 flex-wrap">
                   <div className="min-w-0">
-                    <div className="text-sm font-semibold text-white">{p.name}</div>
-                    <div className="text-xs text-slate-400">{p.email}</div>
+                    <div className="text-sm font-semibold text-[var(--text-primary)]">{p.name}</div>
+                    <div className="text-xs text-[var(--text-secondary)]">{p.email}</div>
                   </div>
                   <button
                     onClick={() => { setLinkingParentId(linkingParentId === p.id ? null : p.id); setLinkStudentId('') }}
@@ -201,11 +201,11 @@ export default function ParentsAdminPage() {
                 {/* linked children chips */}
                 <div className="mt-3 flex flex-wrap gap-2">
                   {p.children.length === 0 ? (
-                    <span className="text-xs text-slate-500">No children linked</span>
+                    <span className="text-xs text-[var(--text-muted)]">No children linked</span>
                   ) : p.children.map(c => (
                     <span key={c.id} className="badge badge-green flex items-center gap-1.5">
                       {c.name}{c.class_name ? ` · ${c.class_name}` : ''}
-                      <button onClick={() => handleUnlink(p.id, c.id)} className="hover:text-red-400">
+                      <button onClick={() => handleUnlink(p.id, c.id)} className="hover:text-red-600">
                         <X size={12} />
                       </button>
                     </span>

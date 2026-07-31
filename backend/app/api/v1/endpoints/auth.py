@@ -5,9 +5,11 @@ import uuid
 from urllib import error, request as urllib_request
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from jose import JWTError, jwt
+from app.core.email import email_enabled, send_password_reset
 from app.db.database import get_db
 from app.models.models import User, Role, Assignment, Attendance, Exam, ExamAttempt, Note, Submission
 from datetime import datetime, timedelta
@@ -59,10 +61,13 @@ def is_eduos_managed_email(email: str | None) -> bool:
 
 
 def normalize_role(role: str | None) -> Role:
-    if role in (Role.student.value, Role.teacher.value, Role.school_admin.value, Role.super_admin.value):
+    if role in (Role.student.value, Role.teacher.value, Role.school_admin.value,
+                Role.super_admin.value, Role.parent.value):
         return Role(role)
     if role == "admin":
         return Role.school_admin
+    if role in ("guardian", "father", "mother"):
+        return Role.parent
     return Role.student
 
 
@@ -362,12 +367,8 @@ def login(req: LoginRequest, db: Session = Depends(get_db)):
             "school_id": synced_user.school_id,
             "eduos_sub": eduos_user.get("id"),
         })
-        
-        # after bad-credential check, before the raise:
-        log_event("warning", "auth.login_failed", detail_email=request.email)
-
-# right before the successful return:
-        log_event("info", "auth.login", user_id=str(user.id), role=user.role.value)
+        log_event("info", "auth.login", user_id=str(synced_user.id),
+                  role=synced_user.role.value, detail_source="eduos")
         return TokenResponse(
             access_token=token,
             user_id=str(synced_user.id),
@@ -378,15 +379,20 @@ def login(req: LoginRequest, db: Session = Depends(get_db)):
 
     # EduOS is configured but returned no match → wrong password on a managed school
     if eduos_managed and os.getenv("EDUOS_API_URL", "").rstrip("/"):
+        log_event("warning", "auth.login_failed", detail_email=req.email, detail_reason="eduos_rejected")
         raise HTTPException(status_code=401, detail="Invalid EduOS email or password")
 
     # EduOS not configured, or non-managed email → try local DB
     user = db.query(User).filter(User.email == req.email).first()
     if user and verify_password(req.password, user.password_hash):
         if not user.is_active:
+            log_event("warning", "auth.login_failed", user_id=str(user.id), detail_reason="disabled")
             raise HTTPException(status_code=403, detail="Account is disabled")
+        log_event("info", "auth.login", user_id=str(user.id),
+                  role=user.role.value, detail_source="local")
         return issue_token_response(user)
 
+    log_event("warning", "auth.login_failed", detail_email=req.email, detail_reason="bad_credentials")
     raise HTTPException(status_code=401, detail="Invalid email or password")
 
 
@@ -436,18 +442,46 @@ def sso_login(req: SSORequest, db: Session = Depends(get_db)):
 
 
 @router.post("/register")
-def register(req: RegisterRequest, db: Session = Depends(get_db)):
-    if db.query(User).filter(User.email == req.email).first():
+def register(
+    req: RegisterRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Create a staff/student/parent account.
+
+    Admin-only, and deliberately CANNOT mint super admins: this used to be an
+    open endpoint that accepted an arbitrary `role`, which let anyone register
+    themselves as super_admin. Super admins are now created solely through
+    /api/v1/admin/super-admins (or the one-time bootstrap route).
+    """
+    if current_user.role not in (Role.school_admin, Role.super_admin):
+        raise HTTPException(status_code=403, detail="Admins only")
+
+    requested_role = normalize_role(req.role)
+    if requested_role == Role.super_admin:
+        raise HTTPException(
+            status_code=403,
+            detail="Super admins must be created from Users → Administrators.",
+        )
+    if requested_role == Role.school_admin and current_user.role != Role.super_admin:
+        raise HTTPException(status_code=403, detail="Only super admins can create school admins")
+
+    if len(req.password) < 8:
+        raise HTTPException(status_code=400, detail="Password must be at least 8 characters")
+
+    email = (req.email or "").strip().lower()
+    if db.query(User).filter(func.lower(User.email) == email).first():
         raise HTTPException(status_code=400, detail="Email already registered")
 
-    colors = ["#6366f1", "#8b5cf6", "#06b6d4", "#10b981", "#f59e0b", "#ef4444"]
+    colors = ["#4f46e5", "#7c3aed", "#0891b2", "#059669", "#d97706", "#dc2626"]
     import random
     user = User(
         name=req.name,
-        email=req.email,
+        email=email,
         password_hash=hash_password(req.password),
-        role=Role(req.role),
-        school_id=req.school_id,
+        role=requested_role,
+        school_id=req.school_id or current_user.school_id,
         subject=req.subject,
         class_name=req.class_name,
         roll_number=req.roll_number,
@@ -456,6 +490,9 @@ def register(req: RegisterRequest, db: Session = Depends(get_db)):
     db.add(user)
     db.commit()
     db.refresh(user)
+    log_event("info", "auth.user_registered", user_id=str(current_user.id),
+              role=current_user.role.value, detail_created=str(user.id),
+              detail_created_role=user.role.value)
     return {"message": "Account created", "user_id": str(user.id)}
 
 
@@ -481,18 +518,41 @@ def me(
 
 @router.post("/forgot-password")
 def forgot_password(req: ForgotPasswordRequest, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.email == req.email).first()
-    if not user:
-        return {"message": "If that email is registered, a reset token has been generated."}
+    # Always answer identically whether or not the address exists, so this
+    # endpoint cannot be used to enumerate registered accounts.
+    generic = {
+        "message": "If that email is registered, a password reset link is on its way.",
+        "email_sent": email_enabled(),
+    }
+
+    email = (req.email or "").strip().lower()
+    user = db.query(User).filter(func.lower(User.email) == email).first()
+    if not user or not user.is_active:
+        log_event("warning", "auth.reset_requested", detail_email=email, detail_found=False)
+        return generic
 
     reset_token = create_access_token(
         {"sub": str(user.id), "email": user.email, "type": "password_reset"},
         expires_delta=timedelta(hours=1),
     )
-    return {
-        "message": "Password reset token generated. Use it within 1 hour.",
-        "reset_token": reset_token,
-    }
+
+    delivered = send_password_reset(user.email, user.name, reset_token)
+    log_event("info", "auth.reset_requested", user_id=str(user.id),
+              detail_found=True, detail_delivered=delivered)
+
+    # Escape hatch for local development and for schools that have not yet
+    # configured Resend: the token is only ever exposed when an operator has
+    # explicitly opted in AND no mail provider is configured. Never enable
+    # ALLOW_RESET_TOKEN_IN_RESPONSE in production — it turns this endpoint
+    # into a one-request account takeover.
+    if not delivered and os.getenv("ALLOW_RESET_TOKEN_IN_RESPONSE", "").lower() == "true":
+        return {
+            "message": "Email delivery is not configured. Use this token within 1 hour.",
+            "email_sent": False,
+            "reset_token": reset_token,
+        }
+
+    return generic
 
 
 @router.post("/reset-password")

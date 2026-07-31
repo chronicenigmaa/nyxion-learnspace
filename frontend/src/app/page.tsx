@@ -13,7 +13,7 @@ export default function HomePage() {
   }, [])
   return (
     <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--surface-900)' }}>
-      <div className="text-indigo-400 text-sm font-mono animate-pulse">Loading Nyxion LearnSpace...</div>
+      <div className="text-indigo-600 text-sm font-mono animate-pulse">Loading Nyxion LearnSpace...</div>
     </div>
   )
 }

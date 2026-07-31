@@ -94,8 +94,8 @@ export default function NotesPage() {
     <div className="animate-fade-in space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white font-display">Notes & Slides</h1>
-          <p className="text-slate-400 text-sm mt-0.5">
+          <h1 className="text-2xl font-bold text-[var(--text-primary)] font-display">Notes & Slides</h1>
+          <p className="text-[var(--text-secondary)] text-sm mt-0.5">
             {isTeacher ? 'Upload resources for your students' : 'Download resources from your teachers'}
           </p>
         </div>
@@ -109,7 +109,7 @@ export default function NotesPage() {
       {/* Upload form */}
       {isTeacher && showForm && (
         <div className="card p-5 animate-slide-up">
-          <h3 className="font-semibold text-white mb-4">Upload Notes / Slides</h3>
+          <h3 className="font-semibold text-[var(--text-primary)] mb-4">Upload Notes / Slides</h3>
           <form onSubmit={handleUpload} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -144,10 +144,10 @@ export default function NotesPage() {
 
             <label className="flex flex-col items-center gap-3 p-6 rounded-xl border-2 border-dashed border-[var(--border)] hover:border-indigo-500/50 cursor-pointer transition-colors"
               style={{ background: 'var(--surface-700)' }}>
-              <Upload size={24} className="text-indigo-400" />
+              <Upload size={24} className="text-indigo-600" />
               <div className="text-center">
-                <p className="text-sm font-medium text-white">Upload files</p>
-                <p className="text-xs text-slate-400">PDF, PPTX, DOCX, images — any format</p>
+                <p className="text-sm font-medium text-[var(--text-primary)]">Upload files</p>
+                <p className="text-xs text-[var(--text-secondary)]">PDF, PPTX, DOCX, images — any format</p>
               </div>
               <input type="file" multiple className="hidden" onChange={e => { if (e.target.files) setFiles(p => [...p, ...Array.from(e.target.files!)]) }} />
             </label>
@@ -157,9 +157,9 @@ export default function NotesPage() {
                 {files.map((f, i) => (
                   <div key={i} className="flex items-center gap-2 p-2.5 rounded-lg" style={{ background: 'var(--surface-600)' }}>
                     <span className="text-base">{fileIcon(f.name)}</span>
-                    <span className="text-sm text-white flex-1 truncate">{f.name}</span>
-                    <span className="text-xs text-slate-400">{fileSize(f.size)}</span>
-                    <button type="button" onClick={() => setFiles(fs => fs.filter((_, j) => j !== i))}><X size={13} className="text-slate-400 hover:text-red-400" /></button>
+                    <span className="text-sm text-[var(--text-primary)] flex-1 truncate">{f.name}</span>
+                    <span className="text-xs text-[var(--text-secondary)]">{fileSize(f.size)}</span>
+                    <button type="button" onClick={() => setFiles(fs => fs.filter((_, j) => j !== i))}><X size={13} className="text-[var(--text-secondary)] hover:text-red-600" /></button>
                   </div>
                 ))}
               </div>
@@ -182,22 +182,22 @@ export default function NotesPage() {
         </div>
       ) : loadError ? (
         <div className="card p-12 text-center">
-          <AlertTriangle size={32} className="text-red-400 mx-auto mb-3" />
-          <p className="text-slate-300 font-medium">Failed to load notes</p>
-          <p className="text-slate-500 text-sm mt-1">Check your connection and try again.</p>
+          <AlertTriangle size={32} className="text-red-600 mx-auto mb-3" />
+          <p className="text-[var(--text-secondary)] font-medium">Failed to load notes</p>
+          <p className="text-[var(--text-muted)] text-sm mt-1">Check your connection and try again.</p>
           <button onClick={load} className="btn-secondary mt-4">Retry</button>
         </div>
       ) : notes.length === 0 ? (
         <div className="card p-12 text-center">
-          <BookOpen size={32} className="text-slate-600 mx-auto mb-3" />
+          <BookOpen size={32} className="text-[var(--text-muted)] mx-auto mb-3" />
           {!isTeacher && profile && !profile.class_name ? (
             <>
-              <p className="text-slate-300 font-medium">No class assigned to your account</p>
-              <p className="text-slate-500 text-sm mt-1">Ask your admin to assign you to a class so notes appear here.</p>
+              <p className="text-[var(--text-secondary)] font-medium">No class assigned to your account</p>
+              <p className="text-[var(--text-muted)] text-sm mt-1">Ask your admin to assign you to a class so notes appear here.</p>
             </>
           ) : (
             <>
-              <p className="text-slate-400">No notes available yet</p>
+              <p className="text-[var(--text-secondary)]">No notes available yet</p>
               {isTeacher && <button onClick={() => setShowForm(true)} className="btn-primary mt-4">Upload first notes</button>}
             </>
           )}
@@ -212,15 +212,15 @@ export default function NotesPage() {
                   📚
                 </div>
                 {isTeacher && (
-                  <button onClick={() => handleDelete(note.id)} className="p-1.5 rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-400/10 transition-all">
+                  <button onClick={() => handleDelete(note.id)} className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-red-600 hover:bg-red-400/10 transition-all">
                     <Trash2 size={14} />
                   </button>
                 )}
               </div>
-              <h3 className="font-semibold text-white">{note.title}</h3>
-              <p className="text-xs text-slate-400 mt-0.5">{note.subject} · {note.class_name}</p>
-              {note.description && <p className="text-xs text-slate-500 mt-1 line-clamp-2">{note.description}</p>}
-              <p className="text-xs text-slate-600 mt-2 font-mono">By {note.teacher_name} · {format(new Date(note.created_at), 'MMM d, yyyy')}</p>
+              <h3 className="font-semibold text-[var(--text-primary)]">{note.title}</h3>
+              <p className="text-xs text-[var(--text-secondary)] mt-0.5">{note.subject} · {note.class_name}</p>
+              {note.description && <p className="text-xs text-[var(--text-muted)] mt-1 line-clamp-2">{note.description}</p>}
+              <p className="text-xs text-[var(--text-muted)] mt-2 font-mono">By {note.teacher_name} · {format(new Date(note.created_at), 'MMM d, yyyy')}</p>
 
               {/* Files */}
               <div className="mt-3 space-y-1.5">
@@ -229,9 +229,9 @@ export default function NotesPage() {
                     className="flex items-center gap-2 p-2 rounded-lg hover:bg-[var(--surface-600)] transition-colors group"
                     style={{ background: 'var(--surface-700)' }}>
                     <span className="text-base">{fileIcon(f.name)}</span>
-                    <span className="text-sm text-slate-300 flex-1 truncate group-hover:text-white">{f.name}</span>
-                    {f.size && <span className="text-xs text-slate-500">{fileSize(f.size)}</span>}
-                    <Download size={12} className="text-slate-500 group-hover:text-indigo-400" />
+                    <span className="text-sm text-[var(--text-secondary)] flex-1 truncate group-hover:text-[var(--text-primary)]">{f.name}</span>
+                    {f.size && <span className="text-xs text-[var(--text-muted)]">{fileSize(f.size)}</span>}
+                    <Download size={12} className="text-[var(--text-muted)] group-hover:text-indigo-600" />
                   </button>
                 ))}
               </div>

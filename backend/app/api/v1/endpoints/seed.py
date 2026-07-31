@@ -1,8 +1,11 @@
-from fastapi import APIRouter, Depends
+import os
+
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.models.models import User, Role, Assignment, Submission, Attendance, Note, Event, AssignmentStatus, SubmissionStatus
-from app.core.security import hash_password
+from app.core.security import get_current_user, hash_password
+from app.core.logging_client import log_event
 from datetime import datetime, timedelta
 import random
 import uuid
@@ -11,7 +14,30 @@ router = APIRouter()
 
 
 @router.post("/seed-demo")
-def seed_demo(db: Session = Depends(get_db)):
+def seed_demo(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Populate the database with demo accounts and sample data.
+
+    DOUBLE-GATED. This route creates accounts with published passwords
+    (demo123), including a school_admin — as an open endpoint it was a direct
+    path to an admin login on a production deployment. It now requires a
+    super admin AND an explicit ALLOW_DEMO_SEED=true on the server, so a
+    production instance cannot be seeded even by a legitimate admin unless
+    someone deliberately turns it on.
+    """
+    if current_user.role != Role.super_admin:
+        raise HTTPException(status_code=403, detail="Super admins only")
+    if os.getenv("ALLOW_DEMO_SEED", "").lower() != "true":
+        log_event("warning", "seed.denied", user_id=str(current_user.id))
+        raise HTTPException(
+            status_code=403,
+            detail="Demo seeding is disabled. Set ALLOW_DEMO_SEED=true on the server to enable it.",
+        )
+    log_event("info", "seed.demo", user_id=str(current_user.id))
+
     created = []
 
     # ── GENERIC DEMO USERS

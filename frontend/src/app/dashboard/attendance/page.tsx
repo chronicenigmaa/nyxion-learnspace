@@ -65,15 +65,15 @@ export default function AttendancePage() {
   return (
     <div className="animate-fade-in space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-white font-display">Attendance</h1>
-        <p className="text-slate-400 text-sm mt-0.5">Mark and track daily attendance</p>
+        <h1 className="text-2xl font-bold text-[var(--text-primary)] font-display">Attendance</h1>
+        <p className="text-[var(--text-secondary)] text-sm mt-0.5">Mark and track daily attendance</p>
       </div>
 
       {/* Tabs */}
       <div className="flex gap-1 p-1 rounded-xl border border-[var(--border)]" style={{ background: 'var(--surface-800)', width: 'fit-content' }}>
         {['mark', 'report'].map(t => (
           <button key={t} onClick={() => setTab(t as any)}
-            className={`px-5 py-2 rounded-lg text-sm font-medium capitalize transition-all ${tab === t ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white'}`}>
+            className={`px-5 py-2 rounded-lg text-sm font-medium capitalize transition-all ${tab === t ? 'bg-indigo-600 text-on-brand' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}>
             {t === 'mark' ? 'Mark Attendance' : 'View Report'}
           </button>
         ))}
@@ -104,12 +104,12 @@ export default function AttendancePage() {
             <>
               <div className="flex items-center gap-4">
                 <div className="card px-4 py-2 flex items-center gap-2">
-                  <CheckCircle size={14} className="text-green-400" />
-                  <span className="text-sm text-white font-medium">{presentCount} Present</span>
+                  <CheckCircle size={14} className="text-green-600" />
+                  <span className="text-sm text-[var(--text-primary)] font-medium">{presentCount} Present</span>
                 </div>
                 <div className="card px-4 py-2 flex items-center gap-2">
-                  <XCircle size={14} className="text-red-400" />
-                  <span className="text-sm text-white font-medium">{absentCount} Absent</span>
+                  <XCircle size={14} className="text-red-600" />
+                  <span className="text-sm text-[var(--text-primary)] font-medium">{absentCount} Absent</span>
                 </div>
                 <div className="ml-auto flex gap-2">
                   <button onClick={() => { const a: Record<string, boolean> = {}; students.forEach(s => a[s.id] = true); setAttendance(a) }} className="btn-secondary py-1.5 text-sm">All Present</button>
@@ -120,15 +120,15 @@ export default function AttendancePage() {
               <div className="card divide-y divide-[var(--border)]">
                 {students.map((s, i) => (
                   <div key={s.id} className="flex items-center gap-4 px-5 py-3.5 hover:bg-[var(--surface-700)] transition-colors">
-                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold" style={{ background: '#6366f1' }}>
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-on-brand text-sm font-bold" style={{ background: '#6366f1' }}>
                       {s.name[0]}
                     </div>
                     <div className="flex-1">
-                      <div className="text-sm font-medium text-white">{s.name}</div>
-                      <div className="text-xs text-slate-400">{s.roll_number || `#${i+1}`}</div>
+                      <div className="text-sm font-medium text-[var(--text-primary)]">{s.name}</div>
+                      <div className="text-xs text-[var(--text-secondary)]">{s.roll_number || `#${i+1}`}</div>
                     </div>
                     <button onClick={() => setAttendance(a => ({ ...a, [s.id]: !a[s.id] }))}
-                      className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${attendance[s.id] ? 'bg-green-500/15 text-green-400 border border-green-500/30' : 'bg-red-500/15 text-red-400 border border-red-500/30'}`}>
+                      className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${attendance[s.id] ? 'bg-green-500/15 text-green-600 border border-green-500/30' : 'bg-red-500/15 text-red-600 border border-red-500/30'}`}>
                       {attendance[s.id] ? <><CheckCircle size={14} /> Present</> : <><XCircle size={14} /> Absent</>}
                     </button>
                   </div>
@@ -141,8 +141,8 @@ export default function AttendancePage() {
             </>
           )}
           {className && students.length === 0 && (
-            <div className="card p-6 text-sm text-slate-400">
-              No students loaded for <span className="text-slate-200">{className}</span>. Check that students exist in this class-section in EduOS.
+            <div className="card p-6 text-sm text-[var(--text-secondary)]">
+              No students loaded for <span className="text-[var(--text-primary)]">{className}</span>. Check that students exist in this class-section in EduOS.
             </div>
           )}
         </>
@@ -167,7 +167,7 @@ export default function AttendancePage() {
 
           {report.length > 0 && (
             <div className="card divide-y divide-[var(--border)]">
-              <div className="px-5 py-3 grid grid-cols-5 text-xs text-slate-400 uppercase tracking-wider font-semibold">
+              <div className="px-5 py-3 grid grid-cols-5 text-xs text-[var(--text-secondary)] uppercase tracking-wider font-semibold">
                 <span className="col-span-2">Student</span>
                 <span className="text-center">Present</span>
                 <span className="text-center">Absent</span>
@@ -176,10 +176,10 @@ export default function AttendancePage() {
               {report.map(r => (
                 <div key={r.student_id} className="px-5 py-3.5 grid grid-cols-5 items-center hover:bg-[var(--surface-700)] transition-colors">
                   <div className="col-span-2">
-                    <div className="text-sm font-medium text-white">{r.student_name}</div>
+                    <div className="text-sm font-medium text-[var(--text-primary)]">{r.student_name}</div>
                   </div>
-                  <div className="text-center text-green-400 font-semibold text-sm">{r.present}</div>
-                  <div className="text-center text-red-400 font-semibold text-sm">{r.absent}</div>
+                  <div className="text-center text-green-600 font-semibold text-sm">{r.present}</div>
+                  <div className="text-center text-red-600 font-semibold text-sm">{r.absent}</div>
                   <div className="text-center">
                     <span className={`badge ${r.percentage >= 75 ? 'badge-green' : r.percentage >= 50 ? 'badge-yellow' : 'badge-red'}`}>
                       {r.percentage}%

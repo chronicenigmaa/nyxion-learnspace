@@ -109,7 +109,7 @@ export default function AIDropdown({ context = {}, tools = [], role }: AIDropdow
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen(o => !o)}
-        className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-purple-400 border border-purple-500/30 hover:bg-purple-500/10 transition-all"
+        className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-purple-600 border border-purple-500/30 hover:bg-purple-500/10 transition-all"
       >
         <Sparkles size={14} />
         AI Tools
@@ -125,9 +125,9 @@ export default function AIDropdown({ context = {}, tools = [], role }: AIDropdow
             <button
               key={tool}
               onClick={() => { setActiveTool(tool); setResult('') }}
-              className="w-full text-left px-4 py-2.5 text-sm text-slate-300 hover:text-white hover:bg-[var(--surface-700)] transition-colors flex items-center gap-2"
+              className="w-full text-left px-4 py-2.5 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-700)] transition-colors flex items-center gap-2"
             >
-              <Sparkles size={12} className="text-purple-400" />
+              <Sparkles size={12} className="text-purple-600" />
               {TOOL_LABELS[tool]}
             </button>
           ))}
@@ -135,17 +135,17 @@ export default function AIDropdown({ context = {}, tools = [], role }: AIDropdow
       )}
 
       {activeTool && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.7)' }}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(15,23,42,0.45)' }}>
           <div
-            className="w-full max-w-xl rounded-2xl border border-[var(--border)] overflow-hidden"
+            className="w-full max-w-xl rounded-2xl border border-[var(--border)] overflow-hidden shadow-2xl"
             style={{ background: 'var(--surface-850)' }}
           >
             <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border)]">
               <div className="flex items-center gap-2">
-                <Sparkles size={15} className="text-purple-400" />
-                <span className="text-white font-medium text-sm">{TOOL_LABELS[activeTool]}</span>
+                <Sparkles size={15} className="text-purple-600" />
+                <span className="text-[var(--text-primary)] font-medium text-sm">{TOOL_LABELS[activeTool]}</span>
               </div>
-              <button onClick={closeModal} className="text-slate-400 hover:text-white">
+              <button onClick={closeModal} className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]">
                 <X size={16} />
               </button>
             </div>
@@ -154,7 +154,7 @@ export default function AIDropdown({ context = {}, tools = [], role }: AIDropdow
               {['exam-generator', 'homework-generator', 'lesson-planner', 'feedback-writer', 'rubric-generator'].includes(activeTool) && (
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs text-slate-400 mb-1">Subject</label>
+                    <label className="block text-xs text-[var(--text-secondary)] mb-1">Subject</label>
                     <input
                       className="input w-full"
                       value={form.subject}
@@ -163,7 +163,7 @@ export default function AIDropdown({ context = {}, tools = [], role }: AIDropdow
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-slate-400 mb-1">Class</label>
+                    <label className="block text-xs text-[var(--text-secondary)] mb-1">Class</label>
                     <input
                       className="input w-full"
                       value={form.class_name}
@@ -176,7 +176,7 @@ export default function AIDropdown({ context = {}, tools = [], role }: AIDropdow
 
               {['exam-generator', 'homework-generator', 'lesson-planner'].includes(activeTool) && (
                 <div>
-                  <label className="block text-xs text-slate-400 mb-1">Topic</label>
+                  <label className="block text-xs text-[var(--text-secondary)] mb-1">Topic</label>
                   <input
                     className="input w-full"
                     value={form.topic}
@@ -188,7 +188,7 @@ export default function AIDropdown({ context = {}, tools = [], role }: AIDropdow
 
               {['plagiarism-check', 'feedback-writer', 'rubric-generator'].includes(activeTool) && (
                 <div>
-                  <label className="block text-xs text-slate-400 mb-1">Assignment Title</label>
+                  <label className="block text-xs text-[var(--text-secondary)] mb-1">Assignment Title</label>
                   <input
                     className="input w-full"
                     value={form.assignment_title}
@@ -201,7 +201,7 @@ export default function AIDropdown({ context = {}, tools = [], role }: AIDropdow
               {['feedback-writer', 'rubric-generator'].includes(activeTool) && (
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs text-slate-400 mb-1">Marks Obtained</label>
+                    <label className="block text-xs text-[var(--text-secondary)] mb-1">Marks Obtained</label>
                     <input
                       className="input w-full"
                       type="number"
@@ -210,7 +210,7 @@ export default function AIDropdown({ context = {}, tools = [], role }: AIDropdow
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-slate-400 mb-1">Max Marks</label>
+                    <label className="block text-xs text-[var(--text-secondary)] mb-1">Max Marks</label>
                     <input
                       className="input w-full"
                       type="number"
@@ -223,7 +223,7 @@ export default function AIDropdown({ context = {}, tools = [], role }: AIDropdow
 
               {['plagiarism-check', 'feedback-writer'].includes(activeTool) && (
                 <div>
-                  <label className="block text-xs text-slate-400 mb-1">Submission Text</label>
+                  <label className="block text-xs text-[var(--text-secondary)] mb-1">Submission Text</label>
                   <textarea
                     className="input w-full h-28 resize-none"
                     value={form.submission_text}
@@ -236,7 +236,7 @@ export default function AIDropdown({ context = {}, tools = [], role }: AIDropdow
               {activeTool === 'exam-generator' && (
                 <div className="grid grid-cols-3 gap-3">
                   <div>
-                    <label className="block text-xs text-slate-400 mb-1">Questions</label>
+                    <label className="block text-xs text-[var(--text-secondary)] mb-1">Questions</label>
                     <input
                       className="input w-full"
                       type="number"
@@ -247,7 +247,7 @@ export default function AIDropdown({ context = {}, tools = [], role }: AIDropdow
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-slate-400 mb-1">Difficulty</label>
+                    <label className="block text-xs text-[var(--text-secondary)] mb-1">Difficulty</label>
                     <select className="input w-full" value={form.difficulty} onChange={e => set('difficulty', e.target.value)}>
                       <option value="easy">Easy</option>
                       <option value="medium">Medium</option>
@@ -255,7 +255,7 @@ export default function AIDropdown({ context = {}, tools = [], role }: AIDropdow
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs text-slate-400 mb-1">Type</label>
+                    <label className="block text-xs text-[var(--text-secondary)] mb-1">Type</label>
                     <select className="input w-full" value={form.question_type} onChange={e => set('question_type', e.target.value)}>
                       <option value="mixed">Mixed</option>
                       <option value="mcq">MCQ</option>
@@ -275,15 +275,15 @@ export default function AIDropdown({ context = {}, tools = [], role }: AIDropdow
                   style={{ background: 'var(--surface-900)' }}
                 >
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-xs text-slate-400">Result</span>
+                    <span className="text-xs text-[var(--text-secondary)]">Result</span>
                     <button
-                      className="text-xs text-slate-400 hover:text-white"
+                      className="text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                       onClick={() => navigator.clipboard.writeText(result)}
                     >
                       Copy
                     </button>
                   </div>
-                  <pre className="text-slate-300 text-sm whitespace-pre-wrap leading-relaxed">{result}</pre>
+                  <pre className="text-[var(--text-secondary)] text-sm whitespace-pre-wrap leading-relaxed">{result}</pre>
                 </div>
               )}
             </div>

@@ -104,8 +104,8 @@ export default function CalendarPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white font-display">Calendar</h1>
-          <p className="text-slate-400 text-sm mt-0.5">School events, holidays and deadlines</p>
+          <h1 className="text-2xl font-bold text-[var(--text-primary)] font-display">Calendar</h1>
+          <p className="text-[var(--text-secondary)] text-sm mt-0.5">School events, holidays and deadlines</p>
         </div>
         {isTeacher && (
           <button onClick={() => setShowForm(true)} className="btn-primary">
@@ -117,7 +117,7 @@ export default function CalendarPage() {
       {/* Legend */}
       <div className="flex gap-3 flex-wrap">
         {EVENT_TYPES.map(t => (
-          <div key={t.value} className="flex items-center gap-1.5 text-xs text-slate-400">
+          <div key={t.value} className="flex items-center gap-1.5 text-xs text-[var(--text-secondary)]">
             <div className="w-2.5 h-2.5 rounded-full" style={{ background: t.color }} />
             {t.label}
           </div>
@@ -130,14 +130,14 @@ export default function CalendarPage() {
           {/* Month navigation */}
           <div className="flex items-center justify-between mb-5">
             <button onClick={() => setCurrent(d => new Date(d.getFullYear(), d.getMonth() - 1, 1))}
-              className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-[var(--surface-700)] transition-all">
+              className="p-2 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-700)] transition-all">
               <ChevronLeft size={18} />
             </button>
-            <h2 className="text-lg font-bold text-white font-display">
+            <h2 className="text-lg font-bold text-[var(--text-primary)] font-display">
               {format(current, 'MMMM yyyy')}
             </h2>
             <button onClick={() => setCurrent(d => new Date(d.getFullYear(), d.getMonth() + 1, 1))}
-              className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-[var(--surface-700)] transition-all">
+              className="p-2 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-700)] transition-all">
               <ChevronRight size={18} />
             </button>
           </div>
@@ -145,7 +145,7 @@ export default function CalendarPage() {
           {/* Day headers */}
           <div className="grid grid-cols-7 mb-2">
             {DAYS.map(d => (
-              <div key={d} className="text-center text-xs font-semibold text-slate-500 uppercase tracking-wider py-1">
+              <div key={d} className="text-center text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider py-1">
                 {d}
               </div>
             ))}
@@ -171,8 +171,8 @@ export default function CalendarPage() {
                   }}
                 >
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold mb-1 ${
-                    todayDay ? 'bg-indigo-600 text-white' :
-                    inMonth ? 'text-slate-300' : 'text-slate-600'
+                    todayDay ? 'bg-indigo-600 text-on-brand' :
+                    inMonth ? 'text-[var(--text-secondary)]' : 'text-[var(--text-muted)]'
                   }`}>
                     {format(day, 'd')}
                   </div>
@@ -185,7 +185,7 @@ export default function CalendarPage() {
                       </div>
                     ))}
                     {dayEvents.length > 3 && (
-                      <div className="text-[10px] text-slate-500">+{dayEvents.length - 3} more</div>
+                      <div className="text-[10px] text-[var(--text-muted)]">+{dayEvents.length - 3} more</div>
                     )}
                   </div>
                 </div>
@@ -196,9 +196,9 @@ export default function CalendarPage() {
           {/* Selected day events */}
           {selected && (
             <div className="mt-4 pt-4 border-t border-[var(--border)]">
-              <h3 className="text-sm font-semibold text-white mb-3">
+              <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">
                 {format(selected, 'EEEE, MMMM d')}
-                {selectedEvents.length === 0 && <span className="text-slate-500 font-normal ml-2">— No events</span>}
+                {selectedEvents.length === 0 && <span className="text-[var(--text-muted)] font-normal ml-2">— No events</span>}
               </h3>
               <div className="space-y-2">
                 {selectedEvents.map(e => (
@@ -206,15 +206,15 @@ export default function CalendarPage() {
                     style={{ background: `${e.color}10`, border: `1px solid ${e.color}25` }}>
                     <div className="w-2.5 h-2.5 rounded-full mt-1 flex-shrink-0" style={{ background: e.color }} />
                     <div className="flex-1">
-                      <div className="text-sm font-medium text-white">{e.title}</div>
-                      {e.description && <div className="text-xs text-slate-400 mt-0.5">{e.description}</div>}
+                      <div className="text-sm font-medium text-[var(--text-primary)]">{e.title}</div>
+                      {e.description && <div className="text-xs text-[var(--text-secondary)] mt-0.5">{e.description}</div>}
                       {e.end_date && e.end_date !== e.date && (
-                        <div className="text-xs text-slate-500 mt-0.5">Until {e.end_date}</div>
+                        <div className="text-xs text-[var(--text-muted)] mt-0.5">Until {e.end_date}</div>
                       )}
                     </div>
                     {isTeacher && (
                       <button onClick={() => handleDelete(e.id)}
-                        className="text-slate-500 hover:text-red-400 transition-colors">
+                        className="text-[var(--text-muted)] hover:text-red-600 transition-colors">
                         <Trash2 size={13} />
                       </button>
                     )}
@@ -236,9 +236,9 @@ export default function CalendarPage() {
         {/* Upcoming events sidebar */}
         <div className="space-y-4">
           <div className="card p-4">
-            <h3 className="font-semibold text-white text-sm mb-3">Upcoming (30 days)</h3>
+            <h3 className="font-semibold text-[var(--text-primary)] text-sm mb-3">Upcoming (30 days)</h3>
             {upcoming.length === 0 ? (
-              <p className="text-slate-500 text-xs">No upcoming events</p>
+              <p className="text-[var(--text-muted)] text-xs">No upcoming events</p>
             ) : (
               <div className="space-y-2">
                 {upcoming.map(e => (
@@ -246,8 +246,8 @@ export default function CalendarPage() {
                     onClick={() => { setCurrent(parseISO(e.date)); setSelected(parseISO(e.date)) }}>
                     <div className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0" style={{ background: e.color }} />
                     <div className="flex-1 min-w-0">
-                      <div className="text-xs font-medium text-white truncate">{e.title}</div>
-                      <div className="text-xs text-slate-500 font-mono">{e.date}</div>
+                      <div className="text-xs font-medium text-[var(--text-primary)] truncate">{e.title}</div>
+                      <div className="text-xs text-[var(--text-muted)] font-mono">{e.date}</div>
                     </div>
                   </div>
                 ))}
@@ -266,11 +266,11 @@ export default function CalendarPage() {
       {/* Add event modal */}
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/60" onClick={() => setShowForm(false)} />
+          <div className="absolute inset-0 bg-slate-900/40" onClick={() => setShowForm(false)} />
           <div className="relative z-10 w-full max-w-md card p-6 animate-slide-up">
             <div className="flex items-center justify-between mb-5">
-              <h3 className="font-bold text-white text-lg">Add Event</h3>
-              <button onClick={() => setShowForm(false)} className="text-slate-400 hover:text-white">
+              <h3 className="font-bold text-[var(--text-primary)] text-lg">Add Event</h3>
+              <button onClick={() => setShowForm(false)} className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]">
                 <X size={18} />
               </button>
             </div>

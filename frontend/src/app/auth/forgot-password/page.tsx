@@ -5,9 +5,12 @@ import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
 import { forgotPassword, resetPassword } from '@/lib/api'
 import NyxionLogo from '@/components/ui/NyxionLogo'
-import { ArrowLeft, Eye, EyeOff, KeyRound, Mail } from 'lucide-react'
+import { ArrowLeft, Eye, EyeOff, KeyRound, Mail, MailCheck } from 'lucide-react'
 
-type Step = 'request' | 'reset' | 'done'
+// 'request' → 'sent'  is the normal path: we email a reset link.
+// 'request' → 'reset' only happens when the server has no mail provider
+//             configured and an operator opted into returning the token.
+type Step = 'request' | 'sent' | 'reset' | 'done'
 
 export default function ForgotPasswordPage() {
   const router = useRouter()
@@ -24,13 +27,14 @@ export default function ForgotPasswordPage() {
     setLoading(true)
     try {
       const res = await forgotPassword(email)
-      const token = res.data.reset_token
+      const token = res.data?.reset_token
       if (token) {
+        // Dev / unconfigured-mail fallback.
         setResetToken(token)
         setStep('reset')
-        toast.success('Reset token generated. Enter your new password below.')
+        toast('Email delivery is off on this server — reset inline instead.')
       } else {
-        toast('If that email is registered, check with your admin for the reset token.')
+        setStep('sent')
       }
     } catch {
       toast.error('Something went wrong. Please try again.')
@@ -68,14 +72,17 @@ export default function ForgotPasswordPage() {
           <NyxionLogo size="md" sub="LearnSpace" />
         </div>
 
-        <Link href="/auth/login" className="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-white mb-6 transition-colors">
-          <ArrowLeft size={16} /> Back to login
+        <Link href="/auth/login"
+          className="inline-flex items-center gap-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] mb-6 transition-colors">
+          <ArrowLeft size={16} /> Back to sign in
         </Link>
 
         {step === 'request' && (
-          <>
-            <h2 className="text-2xl font-bold text-white mb-1">Forgot password?</h2>
-            <p className="text-slate-400 text-sm mb-8">Enter your email to get a password reset token.</p>
+          <div className="card p-8">
+            <h2 className="text-xl font-bold text-[var(--text-primary)] mb-1">Forgot your password?</h2>
+            <p className="text-[var(--text-secondary)] text-sm mb-6">
+              Enter your email and we&apos;ll send you a link to reset it.
+            </p>
 
             <form onSubmit={handleRequest} className="space-y-4">
               <div>
@@ -88,21 +95,48 @@ export default function ForgotPasswordPage() {
                     value={email}
                     onChange={e => setEmail(e.target.value)}
                     required
+                    autoFocus
                   />
-                  <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
                 </div>
               </div>
               <button type="submit" className="btn-primary w-full justify-center py-3" disabled={loading}>
-                {loading ? 'Generating token...' : 'Get reset token'}
+                {loading ? 'Sending...' : 'Send reset link'}
               </button>
             </form>
-          </>
+          </div>
+        )}
+
+        {step === 'sent' && (
+          <div className="card p-8 text-center">
+            <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4 bg-indigo-50">
+              <MailCheck size={26} className="text-indigo-600" />
+            </div>
+            <h2 className="text-xl font-bold text-[var(--text-primary)] mb-2">Check your inbox</h2>
+            <p className="text-[var(--text-secondary)] text-sm mb-2">
+              If <span className="text-[var(--text-primary)] font-medium">{email}</span> is registered,
+              a reset link is on its way. It expires in 1 hour.
+            </p>
+            <p className="text-[var(--text-muted)] text-xs mb-6">
+              Nothing after a few minutes? Check spam, or contact your school admin.
+            </p>
+            <div className="flex gap-2">
+              <button onClick={() => setStep('request')} className="btn-secondary flex-1 justify-center py-3">
+                Try another email
+              </button>
+              <Link href="/auth/login" className="btn-primary flex-1 justify-center py-3">
+                Back to sign in
+              </Link>
+            </div>
+          </div>
         )}
 
         {step === 'reset' && (
-          <>
-            <h2 className="text-2xl font-bold text-white mb-1">Set new password</h2>
-            <p className="text-slate-400 text-sm mb-8">Enter your new password for <span className="text-slate-200">{email}</span>.</p>
+          <div className="card p-8">
+            <h2 className="text-xl font-bold text-[var(--text-primary)] mb-1">Set a new password</h2>
+            <p className="text-[var(--text-secondary)] text-sm mb-6">
+              For <span className="text-[var(--text-primary)] font-medium">{email}</span>.
+            </p>
 
             <form onSubmit={handleReset} className="space-y-4">
               <div>
@@ -118,7 +152,7 @@ export default function ForgotPasswordPage() {
                     minLength={6}
                   />
                   <button type="button" onClick={() => setShowPass(!showPass)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white">
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-primary)]">
                     {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
@@ -141,23 +175,24 @@ export default function ForgotPasswordPage() {
               </button>
 
               <button type="button" onClick={() => setStep('request')}
-                className="w-full text-center text-sm text-slate-400 hover:text-white transition-colors">
+                className="w-full text-center text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">
                 Use a different email
               </button>
             </form>
-          </>
+          </div>
         )}
 
         {step === 'done' && (
-          <div className="text-center py-8">
-            <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
-              style={{ background: 'rgba(16,185,129,0.15)' }}>
-              <KeyRound size={28} className="text-emerald-400" />
+          <div className="card p-8 text-center">
+            <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4 bg-emerald-50">
+              <KeyRound size={26} className="text-emerald-600" />
             </div>
-            <h2 className="text-2xl font-bold text-white mb-2">Password reset!</h2>
-            <p className="text-slate-400 text-sm mb-8">Your password has been updated. You can now log in with your new password.</p>
-            <button onClick={() => router.push('/auth/login')} className="btn-primary px-8 py-3">
-              Go to login
+            <h2 className="text-xl font-bold text-[var(--text-primary)] mb-2">Password reset</h2>
+            <p className="text-[var(--text-secondary)] text-sm mb-6">
+              Your password has been updated. You can now sign in with it.
+            </p>
+            <button onClick={() => router.push('/auth/login')} className="btn-primary px-8 py-3 justify-center w-full">
+              Go to sign in
             </button>
           </div>
         )}

@@ -93,13 +93,13 @@ export default function TimetablePage() {
     <div className="animate-fade-in space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-white font-display">Timetable</h1>
-          <p className="text-slate-400 text-sm mt-0.5">{entries.length} entries across {DAYS.length} days</p>
+          <h1 className="text-2xl font-bold text-[var(--text-primary)] font-display">Timetable</h1>
+          <p className="text-[var(--text-secondary)] text-sm mt-0.5">{entries.length} entries across {DAYS.length} days</p>
         </div>
         <div className="flex gap-2">
           <button
             onClick={() => setAi(a => ({ ...a, open: true }))}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-purple-400 border border-purple-500/30 hover:bg-purple-500/10 transition-all"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-purple-600 border border-purple-500/30 hover:bg-purple-500/10 transition-all"
           >
             <Sparkles size={15} /> Lesson Planner
           </button>
@@ -113,38 +113,38 @@ export default function TimetablePage() {
 
       {showAdd && (
         <div className="card p-5 border-indigo-500/30">
-          <h3 className="text-white font-medium mb-4">New Timetable Entry</h3>
+          <h3 className="text-[var(--text-primary)] font-medium mb-4">New Timetable Entry</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
             <div>
-              <label className="block text-xs text-slate-400 mb-1">Day</label>
+              <label className="block text-xs text-[var(--text-secondary)] mb-1">Day</label>
               <select className="input w-full" value={form.day} onChange={e => setForm(f => ({ ...f, day: e.target.value }))}>
                 {DAYS.map(d => <option key={d}>{d}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-xs text-slate-400 mb-1">Period</label>
+              <label className="block text-xs text-[var(--text-secondary)] mb-1">Period</label>
               <select className="input w-full" value={form.period} onChange={e => setForm(f => ({ ...f, period: e.target.value }))}>
                 {PERIODS.map(p => <option key={p}>{p}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-xs text-slate-400 mb-1">Subject</label>
+              <label className="block text-xs text-[var(--text-secondary)] mb-1">Subject</label>
               <input className="input w-full" placeholder="e.g. Mathematics" value={form.subject} onChange={e => setForm(f => ({ ...f, subject: e.target.value }))} />
             </div>
             <div>
-              <label className="block text-xs text-slate-400 mb-1">Class</label>
+              <label className="block text-xs text-[var(--text-secondary)] mb-1">Class</label>
               <input className="input w-full" placeholder="e.g. Grade 8" value={form.class_name} onChange={e => setForm(f => ({ ...f, class_name: e.target.value }))} />
             </div>
             <div>
-              <label className="block text-xs text-slate-400 mb-1">Teacher</label>
+              <label className="block text-xs text-[var(--text-secondary)] mb-1">Teacher</label>
               <input className="input w-full" placeholder="Teacher name" value={form.teacher_name} onChange={e => setForm(f => ({ ...f, teacher_name: e.target.value }))} />
             </div>
             <div>
-              <label className="block text-xs text-slate-400 mb-1">Start Time</label>
+              <label className="block text-xs text-[var(--text-secondary)] mb-1">Start Time</label>
               <input className="input w-full" type="time" value={form.start_time} onChange={e => setForm(f => ({ ...f, start_time: e.target.value }))} />
             </div>
             <div>
-              <label className="block text-xs text-slate-400 mb-1">End Time</label>
+              <label className="block text-xs text-[var(--text-secondary)] mb-1">End Time</label>
               <input className="input w-full" type="time" value={form.end_time} onChange={e => setForm(f => ({ ...f, end_time: e.target.value }))} />
             </div>
           </div>
@@ -164,11 +164,11 @@ export default function TimetablePage() {
           {DAYS.map(day => (
             <div key={day} className="card overflow-hidden">
               <div className="px-4 py-3 border-b border-[var(--border)] flex items-center justify-between">
-                <span className="text-sm font-semibold text-white">{day}</span>
-                <span className="text-xs text-slate-500">{grouped[day].length} periods</span>
+                <span className="text-sm font-semibold text-[var(--text-primary)]">{day}</span>
+                <span className="text-xs text-[var(--text-muted)]">{grouped[day].length} periods</span>
               </div>
               {grouped[day].length === 0 ? (
-                <div className="px-4 py-6 text-center text-slate-600 text-sm">No classes scheduled</div>
+                <div className="px-4 py-6 text-center text-[var(--text-muted)] text-sm">No classes scheduled</div>
               ) : (
                 <div className="divide-y divide-[var(--border)]">
                   {grouped[day]
@@ -176,28 +176,28 @@ export default function TimetablePage() {
                     .map(entry => (
                       <div key={entry.id} className="flex items-center gap-4 px-4 py-3 hover:bg-[var(--surface-700)] transition-colors group">
                         <div
-                          className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold text-indigo-400 flex-shrink-0"
+                          className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold text-indigo-600 flex-shrink-0"
                           style={{ background: 'rgba(99,102,241,0.15)' }}
                         >
                           {entry.period.replace('th', '').replace('st', '').replace('nd', '').replace('rd', '')}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="text-sm font-medium text-white">{entry.subject}</div>
-                          <div className="text-xs text-slate-400">{entry.class_name} · {entry.teacher_name}</div>
+                          <div className="text-sm font-medium text-[var(--text-primary)]">{entry.subject}</div>
+                          <div className="text-xs text-[var(--text-secondary)]">{entry.class_name} · {entry.teacher_name}</div>
                         </div>
-                        <div className="flex items-center gap-1 text-xs text-slate-500">
+                        <div className="flex items-center gap-1 text-xs text-[var(--text-muted)]">
                           <Clock size={11} /> {entry.start_time} – {entry.end_time}
                         </div>
                         <button
                           onClick={() => setAi(a => ({ ...a, open: true, subject: entry.subject, class_name: entry.class_name }))}
-                          className="opacity-0 group-hover:opacity-100 flex items-center gap-1 px-2 py-1 rounded text-xs text-purple-400 border border-purple-500/30 hover:bg-purple-500/10 transition-all"
+                          className="opacity-0 group-hover:opacity-100 flex items-center gap-1 px-2 py-1 rounded text-xs text-purple-600 border border-purple-500/30 hover:bg-purple-500/10 transition-all"
                         >
                           <Sparkles size={11} /> Plan
                         </button>
                         {isTeacher && (
                           <button
                             onClick={() => handleDelete(entry.id)}
-                            className="opacity-0 group-hover:opacity-100 p-1.5 rounded text-slate-500 hover:text-red-400 hover:bg-red-400/10 transition-all"
+                            className="opacity-0 group-hover:opacity-100 p-1.5 rounded text-[var(--text-muted)] hover:text-red-600 hover:bg-red-400/10 transition-all"
                           >
                             <Trash2 size={14} />
                           </button>
@@ -212,16 +212,16 @@ export default function TimetablePage() {
       )}
 
       {ai.open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.7)' }}>
-          <div className="w-full max-w-2xl rounded-2xl border border-[var(--border)] overflow-hidden" style={{ background: 'var(--surface-850)' }}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(15,23,42,0.45)' }}>
+          <div className="w-full max-w-2xl rounded-2xl border border-[var(--border)] overflow-hidden shadow-2xl" style={{ background: 'var(--surface-850)' }}>
             <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border)]">
               <div className="flex items-center gap-2">
-                <Sparkles size={16} className="text-purple-400" />
-                <span className="text-white font-medium">AI Lesson Planner</span>
+                <Sparkles size={16} className="text-purple-600" />
+                <span className="text-[var(--text-primary)] font-medium">AI Lesson Planner</span>
               </div>
               <button
                 onClick={() => setAi(a => ({ ...a, open: false, result: '' }))}
-                className="text-slate-400 hover:text-white text-xl leading-none"
+                className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-xl leading-none"
               >
                 ×
               </button>
@@ -229,7 +229,7 @@ export default function TimetablePage() {
             <div className="p-6 space-y-4">
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-xs text-slate-400 mb-1">Subject</label>
+                  <label className="block text-xs text-[var(--text-secondary)] mb-1">Subject</label>
                   <input
                     className="input w-full"
                     placeholder="e.g. Biology"
@@ -238,7 +238,7 @@ export default function TimetablePage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-slate-400 mb-1">Class</label>
+                  <label className="block text-xs text-[var(--text-secondary)] mb-1">Class</label>
                   <input
                     className="input w-full"
                     placeholder="e.g. Grade 9"
@@ -247,7 +247,7 @@ export default function TimetablePage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-slate-400 mb-1">Topic</label>
+                  <label className="block text-xs text-[var(--text-secondary)] mb-1">Topic</label>
                   <input
                     className="input w-full"
                     placeholder="e.g. Photosynthesis"
@@ -265,15 +265,15 @@ export default function TimetablePage() {
                   style={{ background: 'var(--surface-900)' }}
                 >
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-xs text-slate-400">Lesson Plan</span>
+                    <span className="text-xs text-[var(--text-secondary)]">Lesson Plan</span>
                     <button
-                      className="text-xs text-slate-400 hover:text-white"
+                      className="text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                       onClick={() => navigator.clipboard.writeText(ai.result)}
                     >
                       Copy
                     </button>
                   </div>
-                  <pre className="text-slate-300 text-sm whitespace-pre-wrap leading-relaxed">{ai.result}</pre>
+                  <pre className="text-[var(--text-secondary)] text-sm whitespace-pre-wrap leading-relaxed">{ai.result}</pre>
                 </div>
               )}
             </div>

@@ -51,8 +51,8 @@ export default function AIToolsPage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-white mb-1">AI Tools</h1>
-        <p className="text-slate-400 text-sm">Powered by Llama 3.3 70B via Groq</p>
+        <h1 className="text-2xl font-bold text-[var(--text-primary)] mb-1">AI Tools</h1>
+        <p className="text-[var(--text-secondary)] text-sm">Powered by Llama 3.3 70B via Groq</p>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {tools.map(tool => {
@@ -65,10 +65,10 @@ export default function AIToolsPage() {
                 style={{ background: tool.color + '22' }}>
                 <Icon size={20} style={{ color: tool.color }} />
               </div>
-              <div className="text-white font-medium mb-1 group-hover:text-indigo-400 transition-colors">
+              <div className="text-[var(--text-primary)] font-medium mb-1 group-hover:text-indigo-600 transition-colors">
                 {tool.label}
               </div>
-              <div className="text-slate-400 text-sm">{tool.desc}</div>
+              <div className="text-[var(--text-secondary)] text-sm">{tool.desc}</div>
             </Link>
           )
         })}

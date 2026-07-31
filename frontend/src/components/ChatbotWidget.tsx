@@ -123,8 +123,8 @@ export default function ChatbotWidget() {
         style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}
       >
         {open
-          ? <X size={20} className="text-white" />
-          : <MessageCircle size={20} className="text-white" />
+          ? <X size={20} className="text-on-brand" />
+          : <MessageCircle size={20} className="text-on-brand" />
         }
       </button>
 
@@ -141,11 +141,11 @@ export default function ChatbotWidget() {
               className="w-8 h-8 rounded-full flex items-center justify-center"
               style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}
             >
-              <Sparkles size={14} className="text-white" />
+              <Sparkles size={14} className="text-on-brand" />
             </div>
             <div>
-              <div className="text-sm font-medium text-white">Nyxion AI</div>
-              <div className="text-xs text-slate-500">Knows your live data</div>
+              <div className="text-sm font-medium text-[var(--text-primary)]">Nyxion AI</div>
+              <div className="text-xs text-[var(--text-muted)]">Knows your live data</div>
             </div>
           </div>
 
@@ -155,8 +155,8 @@ export default function ChatbotWidget() {
                 <div
                   className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm leading-relaxed ${
                     m.role === 'user'
-                      ? 'text-white rounded-br-sm'
-                      : 'text-slate-200 rounded-bl-sm border border-[var(--border)]'
+                      ? 'text-on-brand rounded-br-sm'
+                      : 'text-[var(--text-primary)] rounded-bl-sm border border-[var(--border)]'
                   }`}
                   style={m.role === 'user'
                     ? { background: '#6366f1' }
@@ -207,7 +207,7 @@ export default function ChatbotWidget() {
                 className="w-8 h-8 rounded-lg flex items-center justify-center transition-all disabled:opacity-40"
                 style={{ background: '#6366f1' }}
               >
-                <Send size={14} className="text-white" />
+                <Send size={14} className="text-on-brand" />
               </button>
             </div>
           </div>

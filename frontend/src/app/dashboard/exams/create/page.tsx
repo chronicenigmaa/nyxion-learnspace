@@ -70,17 +70,17 @@ export default function CreateExamPage() {
   return (
     <div className="animate-fade-in max-w-3xl space-y-6">
       <div className="flex items-center gap-3">
-        <Link href="/dashboard/exams" className="text-slate-400 hover:text-white"><ArrowLeft size={20} /></Link>
+        <Link href="/dashboard/exams" className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]"><ArrowLeft size={20} /></Link>
         <div>
-          <h1 className="text-2xl font-bold text-white font-display">Schedule Exam</h1>
-          <p className="text-slate-400 text-sm">Build questions and configure restrictions</p>
+          <h1 className="text-2xl font-bold text-[var(--text-primary)] font-display">Schedule Exam</h1>
+          <p className="text-[var(--text-secondary)] text-sm">Build questions and configure restrictions</p>
         </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* Basic details */}
         <div className="card p-5 space-y-4">
-          <h3 className="font-semibold text-slate-400 text-sm uppercase tracking-wider">Exam Details</h3>
+          <h3 className="font-semibold text-[var(--text-secondary)] text-sm uppercase tracking-wider">Exam Details</h3>
           <div>
             <label className="label">Title *</label>
             <input className="input" placeholder="Mid-Term Mathematics" value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))} required />
@@ -115,7 +115,7 @@ export default function CreateExamPage() {
 
         {/* Security settings */}
         <div className="card p-5">
-          <h3 className="font-semibold text-slate-400 text-sm uppercase tracking-wider mb-4 flex items-center gap-2">
+          <h3 className="font-semibold text-[var(--text-secondary)] text-sm uppercase tracking-wider mb-4 flex items-center gap-2">
             <Shield size={14} /> Exam Security
           </h3>
           <div className="grid grid-cols-2 gap-3">
@@ -131,8 +131,8 @@ export default function CreateExamPage() {
                 <input type="checkbox" className="w-4 h-4 accent-indigo-500" checked={(form as any)[key]}
                   onChange={e => setForm(p => ({ ...p, [key]: e.target.checked }))} />
                 <div>
-                  <div className="text-sm font-medium text-white">{label}</div>
-                  <div className="text-xs text-slate-400">{desc}</div>
+                  <div className="text-sm font-medium text-[var(--text-primary)]">{label}</div>
+                  <div className="text-xs text-[var(--text-secondary)]">{desc}</div>
                 </div>
               </label>
             ))}
@@ -140,7 +140,7 @@ export default function CreateExamPage() {
               <label className="label">Max Tab Warnings</label>
               <input type="number" className="input mt-1" value={form.max_tab_warnings} min="1" max="10"
                 onChange={e => setForm(p => ({ ...p, max_tab_warnings: +e.target.value }))} />
-              <p className="text-xs text-slate-500 mt-1">Auto-terminate after this many switches</p>
+              <p className="text-xs text-[var(--text-muted)] mt-1">Auto-terminate after this many switches</p>
             </div>
           </div>
         </div>
@@ -148,7 +148,7 @@ export default function CreateExamPage() {
         {/* Questions */}
         <div className="card p-5">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-slate-400 text-sm uppercase tracking-wider">
+            <h3 className="font-semibold text-[var(--text-secondary)] text-sm uppercase tracking-wider">
               Questions ({questions.length})
             </h3>
             <div className="flex gap-2">
@@ -167,21 +167,21 @@ export default function CreateExamPage() {
           </div>
 
           {questions.length === 0 ? (
-            <p className="text-slate-500 text-sm text-center py-6">Add questions using the buttons above</p>
+            <p className="text-[var(--text-muted)] text-sm text-center py-6">Add questions using the buttons above</p>
           ) : (
             <div className="space-y-4">
               {questions.map((q, i) => (
                 <div key={q.id} className="p-4 rounded-xl border border-[var(--border)]" style={{ background: 'var(--surface-700)' }}>
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-mono text-slate-500">Q{i + 1}</span>
+                      <span className="text-xs font-mono text-[var(--text-muted)]">Q{i + 1}</span>
                       <span className={`badge ${q.type === 'mcq' ? 'badge-blue' : q.type === 'short' ? 'badge-green' : 'badge-yellow'}`}>{q.type}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <input type="number" className="input py-1 w-20 text-xs text-center" value={q.marks}
                         onChange={e => updateQ(q.id, 'marks', +e.target.value)} placeholder="Marks" min="1" />
-                      <span className="text-xs text-slate-400">marks</span>
-                      <button type="button" onClick={() => removeQ(q.id)} className="text-slate-400 hover:text-red-400">
+                      <span className="text-xs text-[var(--text-secondary)]">marks</span>
+                      <button type="button" onClick={() => removeQ(q.id)} className="text-[var(--text-secondary)] hover:text-red-600">
                         <Trash2 size={14} />
                       </button>
                     </div>
@@ -202,7 +202,7 @@ export default function CreateExamPage() {
                             value={opt} onChange={e => updateOption(q.id, oi, e.target.value)} />
                         </div>
                       ))}
-                      <p className="text-xs text-slate-500">Select the radio button next to the correct answer</p>
+                      <p className="text-xs text-[var(--text-muted)]">Select the radio button next to the correct answer</p>
                     </div>
                   )}
                 </div>

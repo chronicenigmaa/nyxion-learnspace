@@ -48,10 +48,10 @@ export default function DashboardPage() {
     <div className="animate-fade-in space-y-6">
       {/* Welcome */}
       <div>
-        <h1 className="text-2xl font-bold text-white font-display">
+        <h1 className="text-2xl font-bold text-[var(--text-primary)] font-display">
           Good {new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 17 ? 'afternoon' : 'evening'}, {user.name.split(' ')[0]} 👋
         </h1>
-        <p className="text-slate-400 text-sm mt-1">
+        <p className="text-[var(--text-secondary)] text-sm mt-1">
           {format(new Date(), 'EEEE, MMMM d, yyyy')}
           {isStudent && user.class_name && ` · ${user.class_name}`}
           {isTeacher && user.subject && ` · ${user.subject}`}
@@ -64,8 +64,8 @@ export default function DashboardPage() {
           style={{ background: 'rgba(239,68,68,0.1)' }}>
           <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
           <div className="flex-1">
-            <p className="text-red-400 font-semibold text-sm">🔴 Live Exam In Progress</p>
-            <p className="text-slate-300 text-sm">{liveExams[0].title} — {liveExams[0].subject}</p>
+            <p className="text-red-600 font-semibold text-sm">🔴 Live Exam In Progress</p>
+            <p className="text-[var(--text-secondary)] text-sm">{liveExams[0].title} — {liveExams[0].subject}</p>
           </div>
           <Link href="/dashboard/exams" className="btn-primary" style={{ background: '#ef4444' }}>
             {isStudent ? 'Join Exam' : 'Monitor'}
@@ -87,8 +87,8 @@ export default function DashboardPage() {
       {/* Student: attendance card */}
       {isStudent && attendance && (
         <div className="card p-5">
-          <h3 className="font-semibold text-white mb-4 flex items-center gap-2">
-            <CheckCircle size={16} className="text-indigo-400" /> Attendance Overview
+          <h3 className="font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
+            <CheckCircle size={16} className="text-indigo-600" /> Attendance Overview
           </h3>
           <div className="flex items-center gap-6">
             <div className="relative w-20 h-20">
@@ -99,13 +99,13 @@ export default function DashboardPage() {
                   strokeLinecap="round" />
               </svg>
               <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-sm font-bold text-white">{attendance.percentage}%</span>
+                <span className="text-sm font-bold text-[var(--text-primary)]">{attendance.percentage}%</span>
               </div>
             </div>
             <div className="flex gap-6">
-              <div><div className="text-2xl font-bold text-green-400">{attendance.present}</div><div className="text-xs text-slate-400">Present</div></div>
-              <div><div className="text-2xl font-bold text-red-400">{attendance.absent}</div><div className="text-xs text-slate-400">Absent</div></div>
-              <div><div className="text-2xl font-bold text-white">{attendance.total}</div><div className="text-xs text-slate-400">Total</div></div>
+              <div><div className="text-2xl font-bold text-green-600">{attendance.present}</div><div className="text-xs text-[var(--text-secondary)]">Present</div></div>
+              <div><div className="text-2xl font-bold text-red-600">{attendance.absent}</div><div className="text-xs text-[var(--text-secondary)]">Absent</div></div>
+              <div><div className="text-2xl font-bold text-[var(--text-primary)]">{attendance.total}</div><div className="text-xs text-[var(--text-secondary)]">Total</div></div>
             </div>
           </div>
         </div>
@@ -114,14 +114,14 @@ export default function DashboardPage() {
       {/* Recent assignments */}
       <div className="card p-5">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-semibold text-white flex items-center gap-2">
-            <Clock size={16} className="text-indigo-400" />
+          <h3 className="font-semibold text-[var(--text-primary)] flex items-center gap-2">
+            <Clock size={16} className="text-indigo-600" />
             {isTeacher ? 'Your Assignments' : 'Recent Assignments'}
           </h3>
-          <Link href="/dashboard/assignments" className="text-indigo-400 text-xs hover:text-indigo-300">View all →</Link>
+          <Link href="/dashboard/assignments" className="text-indigo-600 text-xs hover:text-indigo-700">View all →</Link>
         </div>
         {assignments.length === 0 ? (
-          <p className="text-slate-500 text-sm">No assignments yet.</p>
+          <p className="text-[var(--text-muted)] text-sm">No assignments yet.</p>
         ) : (
           <div className="space-y-2">
             {assignments.slice(0, 5).map(a => {
@@ -132,13 +132,13 @@ export default function DashboardPage() {
                   className="flex items-center gap-3 p-3 rounded-lg hover:bg-[var(--surface-700)] transition-colors group">
                   <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
                     style={{ background: 'rgba(99,102,241,0.15)' }}>
-                    <FileText size={14} className="text-indigo-400" />
+                    <FileText size={14} className="text-indigo-600" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium text-white truncate group-hover:text-indigo-300">{a.title}</div>
-                    <div className="text-xs text-slate-400">{a.subject} · {a.class_name}</div>
+                    <div className="text-sm font-medium text-[var(--text-primary)] truncate group-hover:text-indigo-700">{a.title}</div>
+                    <div className="text-xs text-[var(--text-secondary)]">{a.subject} · {a.class_name}</div>
                   </div>
-                  <div className={`text-xs font-mono ${overdue ? 'text-red-400' : 'text-slate-400'}`}>
+                  <div className={`text-xs font-mono ${overdue ? 'text-red-600' : 'text-[var(--text-secondary)]'}`}>
                     {overdue ? 'Overdue' : format(due, 'MMM d')}
                   </div>
                   <span className={`badge ${a.status === 'published' ? 'badge-green' : 'badge-gray'}`}>{a.status}</span>
@@ -161,9 +161,9 @@ function StatCard({ icon: Icon, label, value, sub, color }: any) {
           <Icon size={16} style={{ color }} />
         </div>
       </div>
-      <div className="text-2xl font-bold text-white font-display">{value}</div>
-      <div className="text-xs font-semibold text-slate-300 mt-0.5">{label}</div>
-      <div className="text-xs text-slate-500 mt-0.5">{sub}</div>
+      <div className="text-2xl font-bold text-[var(--text-primary)] font-display">{value}</div>
+      <div className="text-xs font-semibold text-[var(--text-secondary)] mt-0.5">{label}</div>
+      <div className="text-xs text-[var(--text-muted)] mt-0.5">{sub}</div>
     </div>
   )
 }

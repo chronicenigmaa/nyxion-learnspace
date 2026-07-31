@@ -47,10 +47,17 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
         user_id: str = payload.get("sub")
         if user_id is None:
             raise credentials_exception
+        # Single-purpose tokens (e.g. password_reset, emailed to the user) must
+        # never be accepted as session credentials. Only tokens with no type
+        # claim (legacy sessions) or an explicit "access" type are valid here.
+        if payload.get("type") not in (None, "access"):
+            raise credentials_exception
     except JWTError:
         raise credentials_exception
 
     user = db.query(User).filter(User.id == user_id).first()
     if user is None:
         raise credentials_exception
+    if not user.is_active:
+        raise HTTPException(status_code=403, detail="Account is disabled")
     return user

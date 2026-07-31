@@ -33,16 +33,16 @@ export default function GradesPage() {
   return (
     <div className="animate-fade-in space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-white font-display">Grades</h1>
-        <p className="text-slate-400 text-sm mt-0.5">Your academic performance</p>
+        <h1 className="text-2xl font-bold text-[var(--text-primary)] font-display">Grades</h1>
+        <p className="text-[var(--text-secondary)] text-sm mt-0.5">Your academic performance</p>
       </div>
 
       {loading ? (
         <div className="space-y-3">{[1,2,3].map(i => <div key={i} className="skeleton h-16 rounded-xl" />)}</div>
       ) : grades.length === 0 ? (
         <div className="card p-12 text-center">
-          <BarChart2 size={32} className="text-slate-600 mx-auto mb-3" />
-          <p className="text-slate-400">No graded assignments yet</p>
+          <BarChart2 size={32} className="text-[var(--text-muted)] mx-auto mb-3" />
+          <p className="text-[var(--text-secondary)]">No graded assignments yet</p>
         </div>
       ) : (
         <>
@@ -50,30 +50,30 @@ export default function GradesPage() {
           <div className="grid grid-cols-3 gap-4">
             <div className="card p-5 text-center">
               <div className="text-4xl font-bold font-display gradient-text">{gradeLevel}</div>
-              <div className="text-xs text-slate-400 mt-1">Overall Grade</div>
+              <div className="text-xs text-[var(--text-secondary)] mt-1">Overall Grade</div>
             </div>
             <div className="card p-5 text-center">
-              <div className="text-4xl font-bold text-white font-display">{avg}%</div>
-              <div className="text-xs text-slate-400 mt-1">Average Score</div>
+              <div className="text-4xl font-bold text-[var(--text-primary)] font-display">{avg}%</div>
+              <div className="text-xs text-[var(--text-secondary)] mt-1">Average Score</div>
             </div>
             <div className="card p-5 text-center">
-              <div className="text-4xl font-bold text-green-400 font-display">{highest}%</div>
-              <div className="text-xs text-slate-400 mt-1">Highest Score</div>
+              <div className="text-4xl font-bold text-green-600 font-display">{highest}%</div>
+              <div className="text-xs text-[var(--text-secondary)] mt-1">Highest Score</div>
             </div>
           </div>
 
           {/* Bar chart */}
           {chartData.length > 1 && (
             <div className="card p-5">
-              <h3 className="font-semibold text-white mb-4 flex items-center gap-2">
-                <TrendingUp size={16} className="text-indigo-400" /> Performance Chart
+              <h3 className="font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
+                <TrendingUp size={16} className="text-indigo-600" /> Performance Chart
               </h3>
               <ResponsiveContainer width="100%" height={200}>
                 <BarChart data={chartData} margin={{ top: 5, right: 5, bottom: 40, left: 0 }}>
                   <XAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 10 }} angle={-35} textAnchor="end" />
                   <YAxis domain={[0, 100]} tick={{ fill: '#64748b', fontSize: 11 }} />
                   <Tooltip
-                    contentStyle={{ background: '#1a1a2e', border: '1px solid rgba(99,102,241,0.2)', borderRadius: '8px', color: '#e2e8f0' }}
+                    contentStyle={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', color: '#0f172a', boxShadow: '0 10px 24px -6px rgba(15,23,42,0.12)', fontSize: '13px' }}
                     formatter={(val: any) => [`${val}%`, 'Score']}
                   />
                   <Bar dataKey="score" radius={[4, 4, 0, 0]}>
@@ -88,7 +88,7 @@ export default function GradesPage() {
 
           {/* Grade table */}
           <div className="card overflow-hidden">
-            <div className="px-5 py-3 border-b border-[var(--border)] grid grid-cols-5 text-xs text-slate-400 uppercase tracking-wider font-semibold">
+            <div className="px-5 py-3 border-b border-[var(--border)] grid grid-cols-5 text-xs text-[var(--text-secondary)] uppercase tracking-wider font-semibold">
               <span className="col-span-2">Assignment</span>
               <span>Subject</span>
               <span className="text-center">Marks</span>
@@ -97,11 +97,11 @@ export default function GradesPage() {
             {grades.map(g => (
               <div key={g.assignment_id} className="px-5 py-4 border-b border-[var(--border)] last:border-0 grid grid-cols-5 items-center hover:bg-[var(--surface-700)] transition-colors">
                 <div className="col-span-2">
-                  <div className="text-sm font-medium text-white">{g.assignment_title}</div>
-                  {g.feedback && <div className="text-xs text-slate-500 mt-0.5 line-clamp-1">{g.feedback}</div>}
+                  <div className="text-sm font-medium text-[var(--text-primary)]">{g.assignment_title}</div>
+                  {g.feedback && <div className="text-xs text-[var(--text-muted)] mt-0.5 line-clamp-1">{g.feedback}</div>}
                 </div>
-                <div className="text-xs text-slate-400">{g.subject}</div>
-                <div className="text-center text-sm font-semibold text-white">
+                <div className="text-xs text-[var(--text-secondary)]">{g.subject}</div>
+                <div className="text-center text-sm font-semibold text-[var(--text-primary)]">
                   {g.marks_obtained}/{g.max_marks}
                 </div>
                 <div className="text-center">

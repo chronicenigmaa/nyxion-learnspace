@@ -25,20 +25,20 @@ export default function PlagiarismPage() {
 
   return (
     <div className="max-w-3xl">
-      <h1 className="text-2xl font-bold text-white mb-1">Plagiarism Checker</h1>
-      <p className="text-slate-400 text-sm mb-6">Detect copied or AI-generated content in student submissions</p>
+      <h1 className="text-2xl font-bold text-[var(--text-primary)] mb-1">Plagiarism Checker</h1>
+      <p className="text-[var(--text-secondary)] text-sm mb-6">Detect copied or AI-generated content in student submissions</p>
       <div className="p-5 rounded-xl border border-[var(--border)] mb-4" style={{ background: 'var(--surface-850)' }}>
         <div className="mb-4">
-          <label className="block text-sm text-slate-400 mb-1">Assignment Title</label>
+          <label className="block text-sm text-[var(--text-secondary)] mb-1">Assignment Title</label>
           <input className="input w-full" placeholder="e.g. Essay on Climate Change"
             value={form.assignment_title} onChange={e => set('assignment_title', e.target.value)} />
         </div>
         <div className="mb-4">
-          <label className="block text-sm text-slate-400 mb-1">Student Submission Text</label>
+          <label className="block text-sm text-[var(--text-secondary)] mb-1">Student Submission Text</label>
           <textarea className="input w-full h-48 resize-none" placeholder="Paste the student's submission here..."
             value={form.text} onChange={e => set('text', e.target.value)} />
         </div>
-        {error && <p className="text-red-400 text-sm mb-3">{error}</p>}
+        {error && <p className="text-red-600 text-sm mb-3">{error}</p>}
         <button className="btn-primary" onClick={submit} disabled={loading}>
           {loading ? 'Analysing...' : 'Check for Plagiarism'}
         </button>
@@ -46,10 +46,10 @@ export default function PlagiarismPage() {
       {result && (
         <div className="p-5 rounded-xl border border-[var(--border)]" style={{ background: 'var(--surface-850)' }}>
           <div className="flex justify-between items-center mb-3">
-            <h2 className="text-white font-medium">Analysis Result</h2>
-            <span className="text-xs text-slate-500">{wordCount} words</span>
+            <h2 className="text-[var(--text-primary)] font-medium">Analysis Result</h2>
+            <span className="text-xs text-[var(--text-muted)]">{wordCount} words</span>
           </div>
-          <pre className="text-slate-300 text-sm whitespace-pre-wrap leading-relaxed">{result}</pre>
+          <pre className="text-[var(--text-secondary)] text-sm whitespace-pre-wrap leading-relaxed">{result}</pre>
         </div>
       )}
     </div>

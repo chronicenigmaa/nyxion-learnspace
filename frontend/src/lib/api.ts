@@ -41,6 +41,21 @@ export const forgotPassword = (email: string) =>
 export const resetPassword = (token: string, new_password: string) =>
   api.post('/api/v1/auth/reset-password', { token, new_password })
 
+// Admin / super admin management
+export const getSetupStatus = () => api.get('/api/v1/admin/setup-status')
+export const bootstrapSuperAdmin = (
+  data: { name: string; email: string; password: string },
+  secret: string,
+) => api.post('/api/v1/admin/bootstrap', data, { headers: { 'X-Bootstrap-Secret': secret } })
+export const listSuperAdmins = () => api.get('/api/v1/admin/super-admins')
+export const createSuperAdmin = (data: {
+  name: string; email: string; password?: string | null; send_invite_email?: boolean
+}) => api.post('/api/v1/admin/super-admins', data)
+export const setUserActive = (id: string, is_active: boolean) =>
+  api.patch(`/api/v1/admin/users/${id}/active`, { is_active })
+export const deleteSuperAdmin = (id: string) =>
+  api.delete(`/api/v1/admin/super-admins/${id}`)
+
 // Assignments
 export const getAssignments = () => api.get('/api/v1/assignments/')
 export const getAssignment = (id: string) => api.get(`/api/v1/assignments/${id}`)

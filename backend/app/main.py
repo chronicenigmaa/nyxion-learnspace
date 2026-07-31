@@ -10,10 +10,11 @@ from app.core.logging_client import log_event
 from app.api.v1.endpoints import (
     auth, users, assignments, submissions, grades, attendance,
     exams, notes, events, seed, ai, timetable, coursebooks,
-    parents,
+    parents, admin,
 )
-from app.db.database import engine, Base
+from app.db.database import engine, Base, ensure_schema
 
+ensure_schema(engine)          # must precede create_all — SQLAlchemy won't create the schema
 Base.metadata.create_all(bind=engine)
 
 # 1) create the app FIRST
@@ -66,10 +67,18 @@ app.include_router(ai.router,          prefix="/api/v1/ai",          tags=["ai"]
 app.include_router(timetable.router,   prefix="/api/v1/timetable",   tags=["timetable"])
 app.include_router(coursebooks.router, prefix="/api/v1/coursebooks", tags=["coursebooks"])
 app.include_router(parents.router,     prefix="/api/v1/parents",     tags=["parents"])
+app.include_router(admin.router,       prefix="/api/v1/admin",       tags=["admin"])
 
 # 5) uploads + health
-os.makedirs("/uploads", exist_ok=True)
-app.mount("/uploads", StaticFiles(directory="/uploads"), name="uploads")
+# In Docker this is the absolute /uploads volume; running locally on Windows
+# or macOS that path is not writable, so fall back to ./uploads.
+UPLOAD_DIR = os.getenv("UPLOAD_DIR", "/uploads")
+try:
+    os.makedirs(UPLOAD_DIR, exist_ok=True)
+except OSError:
+    UPLOAD_DIR = os.path.abspath("uploads")
+    os.makedirs(UPLOAD_DIR, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
 @app.get("/health")
 def health():

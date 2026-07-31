@@ -21,20 +21,20 @@ export default function SummarisePage() {
 
   return (
     <div className="max-w-3xl">
-      <h1 className="text-2xl font-bold text-white mb-1">Notes Summariser</h1>
-      <p className="text-slate-400 text-sm mb-6">Paste your notes and get a summary, key points, and glossary</p>
+      <h1 className="text-2xl font-bold text-[var(--text-primary)] mb-1">Notes Summariser</h1>
+      <p className="text-[var(--text-secondary)] text-sm mb-6">Paste your notes and get a summary, key points, and glossary</p>
       <div className="p-5 rounded-xl border border-[var(--border)] mb-4" style={{ background: 'var(--surface-850)' }}>
         <div className="mb-4">
-          <label className="block text-sm text-slate-400 mb-1">Subject (optional)</label>
+          <label className="block text-sm text-[var(--text-secondary)] mb-1">Subject (optional)</label>
           <input className="input w-full" placeholder="e.g. Chemistry"
             value={subject} onChange={e => setSubject(e.target.value)} />
         </div>
         <div className="mb-4">
-          <label className="block text-sm text-slate-400 mb-1">Your Notes</label>
+          <label className="block text-sm text-[var(--text-secondary)] mb-1">Your Notes</label>
           <textarea className="input w-full h-48 resize-none" placeholder="Paste your notes here..."
             value={text} onChange={e => setText(e.target.value)} />
         </div>
-        {error && <p className="text-red-400 text-sm mb-3">{error}</p>}
+        {error && <p className="text-red-600 text-sm mb-3">{error}</p>}
         <button className="btn-primary" onClick={submit} disabled={loading}>
           {loading ? 'Summarising...' : 'Summarise Notes'}
         </button>
@@ -42,11 +42,11 @@ export default function SummarisePage() {
       {result && (
         <div className="p-5 rounded-xl border border-[var(--border)]" style={{ background: 'var(--surface-850)' }}>
           <div className="flex justify-between items-center mb-3">
-            <h2 className="text-white font-medium">Summary</h2>
-            <button className="text-xs text-slate-400 hover:text-white"
+            <h2 className="text-[var(--text-primary)] font-medium">Summary</h2>
+            <button className="text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
               onClick={() => navigator.clipboard.writeText(result)}>Copy</button>
           </div>
-          <pre className="text-slate-300 text-sm whitespace-pre-wrap leading-relaxed">{result}</pre>
+          <pre className="text-[var(--text-secondary)] text-sm whitespace-pre-wrap leading-relaxed">{result}</pre>
         </div>
       )}
     </div>

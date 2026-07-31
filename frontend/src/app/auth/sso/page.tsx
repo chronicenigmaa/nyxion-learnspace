@@ -39,7 +39,7 @@ function SSOHandler() {
   }, [params, router])
 
   return (
-    <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'#0f0f23', color:'#6366f1', fontFamily:'monospace' }}>
+    <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'#f1f5f9', color:'#6366f1', fontFamily:'monospace' }}>
       Connecting to LearnSpace...
     </div>
   )
@@ -47,7 +47,7 @@ function SSOHandler() {
 
 export default function SSOPage() {
   return (
-    <Suspense fallback={<div style={{ minHeight:'100vh', background:'#0f0f23' }} />}>
+    <Suspense fallback={<div style={{ minHeight:'100vh', background:'#f1f5f9' }} />}>
       <SSOHandler />
     </Suspense>
   )

@@ -78,7 +78,7 @@ export default function AssignmentDetailPage() {
   }
 
   if (loading) return <div className="space-y-3">{[1,2,3].map(i => <div key={i} className="skeleton h-20 rounded-xl" />)}</div>
-  if (!assignment) return <p className="text-slate-400">Assignment not found</p>
+  if (!assignment) return <p className="text-[var(--text-secondary)]">Assignment not found</p>
 
   const isTeacher = user?.role === 'teacher' || user?.role === 'school_admin'
   const due = new Date(assignment.due_date)
@@ -87,10 +87,10 @@ export default function AssignmentDetailPage() {
   return (
     <div className="animate-fade-in max-w-3xl space-y-6">
       <div className="flex items-center gap-3">
-        <Link href="/dashboard/assignments" className="text-slate-400 hover:text-white">
+        <Link href="/dashboard/assignments" className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]">
           <ArrowLeft size={20} />
         </Link>
-        <h1 className="text-2xl font-bold text-white font-display flex-1">{assignment.title}</h1>
+        <h1 className="text-2xl font-bold text-[var(--text-primary)] font-display flex-1">{assignment.title}</h1>
         <span className={`badge ${assignment.status === 'published' ? 'badge-green' : 'badge-gray'}`}>{assignment.status}</span>
       </div>
 
@@ -104,19 +104,19 @@ export default function AssignmentDetailPage() {
             ['Due', format(due, 'MMM d, h:mm a')],
           ].map(([l, v]) => (
             <div key={l as string}>
-              <div className="text-xs text-slate-400 uppercase tracking-wider">{l}</div>
-              <div className={`text-sm font-semibold mt-0.5 ${l === 'Due' && overdue ? 'text-red-400' : 'text-white'}`}>{v}</div>
+              <div className="text-xs text-[var(--text-secondary)] uppercase tracking-wider">{l}</div>
+              <div className={`text-sm font-semibold mt-0.5 ${l === 'Due' && overdue ? 'text-red-600' : 'text-[var(--text-primary)]'}`}>{v}</div>
             </div>
           ))}
         </div>
         {assignment.description && (
-          <p className="text-sm text-slate-300 leading-relaxed border-t border-[var(--border)] pt-4">{assignment.description}</p>
+          <p className="text-sm text-[var(--text-secondary)] leading-relaxed border-t border-[var(--border)] pt-4">{assignment.description}</p>
         )}
         {assignment.attachments?.length > 0 && (
           <div className="flex gap-2 mt-4 flex-wrap">
             {assignment.attachments.map((f: any) => (
               <a key={f.id} href={f.path} download={f.name}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-indigo-400 hover:text-indigo-300 border border-indigo-500/20 hover:border-indigo-500/50 transition-all"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-indigo-600 hover:text-indigo-700 border border-indigo-500/20 hover:border-indigo-500/50 transition-all"
                 style={{ background: 'rgba(99,102,241,0.08)' }}>
                 <Download size={12} /> {f.name}
               </a>
@@ -128,8 +128,8 @@ export default function AssignmentDetailPage() {
       {/* Student submission form */}
       {!isTeacher && (
         <div className="card p-5">
-          <h3 className="font-semibold text-white mb-4 flex items-center gap-2">
-            {mySubmission ? <CheckCircle size={16} className="text-green-400" /> : <Clock size={16} className="text-indigo-400" />}
+          <h3 className="font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
+            {mySubmission ? <CheckCircle size={16} className="text-green-600" /> : <Clock size={16} className="text-indigo-600" />}
             {mySubmission ? 'Your Submission' : 'Submit Assignment'}
           </h3>
 
@@ -137,16 +137,16 @@ export default function AssignmentDetailPage() {
             <div className="space-y-3">
               <div className="p-4 rounded-xl border border-green-500/30" style={{ background: 'rgba(16,185,129,0.1)' }}>
                 <div className="flex items-center justify-between">
-                  <span className="text-green-400 font-semibold">Graded</span>
-                  <span className="text-2xl font-bold text-white">{mySubmission.marks_obtained}/{assignment.max_marks}</span>
+                  <span className="text-green-600 font-semibold">Graded</span>
+                  <span className="text-2xl font-bold text-[var(--text-primary)]">{mySubmission.marks_obtained}/{assignment.max_marks}</span>
                 </div>
-                {mySubmission.feedback && <p className="text-slate-300 text-sm mt-2">{mySubmission.feedback}</p>}
+                {mySubmission.feedback && <p className="text-[var(--text-secondary)] text-sm mt-2">{mySubmission.feedback}</p>}
               </div>
               {(mySubmission.plagiarism_score ?? 0) > 0 && (
                 <div className={`p-3 rounded-lg border flex items-center gap-2 ${mySubmission.plagiarism_score > 60 ? 'border-red-500/30' : 'border-yellow-500/30'}`}
                   style={{ background: mySubmission.plagiarism_score > 60 ? 'rgba(239,68,68,0.1)' : 'rgba(245,158,11,0.1)' }}>
-                  <AlertTriangle size={14} className={mySubmission.plagiarism_score > 60 ? 'text-red-400' : 'text-yellow-400'} />
-                  <span className={`text-sm ${mySubmission.plagiarism_score > 60 ? 'text-red-400' : 'text-yellow-400'}`}>
+                  <AlertTriangle size={14} className={mySubmission.plagiarism_score > 60 ? 'text-red-600' : 'text-yellow-600'} />
+                  <span className={`text-sm ${mySubmission.plagiarism_score > 60 ? 'text-red-600' : 'text-yellow-600'}`}>
                     Similarity score: {mySubmission.plagiarism_score}%
                     {mySubmission.plagiarism_score > 60 ? ' — flagged for review' : ' — within acceptable range'}
                   </span>
@@ -157,15 +157,15 @@ export default function AssignmentDetailPage() {
             <form onSubmit={handleSubmit} className="space-y-4">
               {mySubmission && (
                 <div className="space-y-2">
-                  <div className="p-3 rounded-lg border border-indigo-500/30 text-sm text-indigo-300"
+                  <div className="p-3 rounded-lg border border-indigo-500/30 text-sm text-indigo-700"
                     style={{ background: 'rgba(99,102,241,0.1)' }}>
                     ✓ Already submitted on {format(new Date(mySubmission.submitted_at), 'MMM d, h:mm a')} — you can re-submit
                   </div>
                   {(mySubmission.plagiarism_score ?? 0) > 0 && (
                     <div className={`p-3 rounded-lg border flex items-center gap-2 ${mySubmission.plagiarism_score > 60 ? 'border-red-500/30' : 'border-yellow-500/30'}`}
                       style={{ background: mySubmission.plagiarism_score > 60 ? 'rgba(239,68,68,0.1)' : 'rgba(245,158,11,0.1)' }}>
-                      <AlertTriangle size={14} className={mySubmission.plagiarism_score > 60 ? 'text-red-400' : 'text-yellow-400'} />
-                      <span className={`text-sm ${mySubmission.plagiarism_score > 60 ? 'text-red-400' : 'text-yellow-400'}`}>
+                      <AlertTriangle size={14} className={mySubmission.plagiarism_score > 60 ? 'text-red-600' : 'text-yellow-600'} />
+                      <span className={`text-sm ${mySubmission.plagiarism_score > 60 ? 'text-red-600' : 'text-yellow-600'}`}>
                         Similarity score: {mySubmission.plagiarism_score}%
                         {mySubmission.plagiarism_score > 60 ? ' — high similarity detected' : ''}
                       </span>
@@ -181,15 +181,15 @@ export default function AssignmentDetailPage() {
                 <label className="label">File Uploads</label>
                 <label className="flex items-center gap-3 p-4 rounded-xl border-2 border-dashed border-[var(--border)] hover:border-indigo-500/50 cursor-pointer transition-colors"
                   style={{ background: 'var(--surface-700)' }}>
-                  <Upload size={18} className="text-indigo-400" />
-                  <span className="text-sm text-slate-300">Click to upload files</span>
+                  <Upload size={18} className="text-indigo-600" />
+                  <span className="text-sm text-[var(--text-secondary)]">Click to upload files</span>
                   <input type="file" multiple className="hidden" onChange={e => { if (e.target.files) setFiles(p => [...p, ...Array.from(e.target.files!)]) }} />
                 </label>
                 {files.map((f, i) => (
                   <div key={i} className="flex items-center gap-2 mt-2 p-2 rounded-lg" style={{ background: 'var(--surface-600)' }}>
-                    <FileText size={12} className="text-indigo-400" />
-                    <span className="text-xs text-white flex-1 truncate">{f.name}</span>
-                    <button type="button" onClick={() => setFiles(fs => fs.filter((_, j) => j !== i))}><X size={12} className="text-slate-400 hover:text-red-400" /></button>
+                    <FileText size={12} className="text-indigo-600" />
+                    <span className="text-xs text-[var(--text-primary)] flex-1 truncate">{f.name}</span>
+                    <button type="button" onClick={() => setFiles(fs => fs.filter((_, j) => j !== i))}><X size={12} className="text-[var(--text-secondary)] hover:text-red-600" /></button>
                   </div>
                 ))}
               </div>
@@ -204,17 +204,17 @@ export default function AssignmentDetailPage() {
       {/* Teacher: submissions list */}
       {isTeacher && (
         <div className="card p-5">
-          <h3 className="font-semibold text-white mb-4">{submissions.length} Submissions</h3>
+          <h3 className="font-semibold text-[var(--text-primary)] mb-4">{submissions.length} Submissions</h3>
           {submissions.length === 0 ? (
-            <p className="text-slate-500 text-sm">No submissions yet</p>
+            <p className="text-[var(--text-muted)] text-sm">No submissions yet</p>
           ) : (
             <div className="space-y-3">
               {submissions.map(s => (
                 <div key={s.id} className="p-4 rounded-xl border border-[var(--border)]" style={{ background: 'var(--surface-700)' }}>
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <div className="font-medium text-white">{s.student_name}</div>
-                      <div className="text-xs text-slate-400 mt-0.5">
+                      <div className="font-medium text-[var(--text-primary)]">{s.student_name}</div>
+                      <div className="text-xs text-[var(--text-secondary)] mt-0.5">
                         Submitted {s.submitted_at ? format(new Date(s.submitted_at), 'MMM d, h:mm a') : 'N/A'}
                       </div>
                     </div>
@@ -239,7 +239,7 @@ export default function AssignmentDetailPage() {
                       {openSubmissionId === s.id ? 'Hide Submission' : 'Review Submission'}
                     </button>
                     {s.files?.length > 0 && (
-                      <span className="text-xs text-slate-400">{s.files.length} attachment{s.files.length !== 1 ? 's' : ''}</span>
+                      <span className="text-xs text-[var(--text-secondary)]">{s.files.length} attachment{s.files.length !== 1 ? 's' : ''}</span>
                     )}
                   </div>
 
@@ -247,11 +247,11 @@ export default function AssignmentDetailPage() {
                     <div className="mt-3 space-y-3">
                       {/* Written answer */}
                       <div className="rounded-xl border border-[var(--border)] p-4" style={{ background: 'var(--surface-800)' }}>
-                        <div className="text-xs uppercase tracking-wider text-slate-500 mb-2">Written Answer</div>
+                        <div className="text-xs uppercase tracking-wider text-[var(--text-muted)] mb-2">Written Answer</div>
                         {s.content ? (
-                          <p className="text-sm text-slate-200 whitespace-pre-wrap leading-relaxed">{s.content}</p>
+                          <p className="text-sm text-[var(--text-primary)] whitespace-pre-wrap leading-relaxed">{s.content}</p>
                         ) : (
-                          <p className="text-sm text-slate-500">No written answer submitted.</p>
+                          <p className="text-sm text-[var(--text-muted)]">No written answer submitted.</p>
                         )}
                       </div>
 
@@ -266,14 +266,14 @@ export default function AssignmentDetailPage() {
                         }`} style={{ background: s.plagiarism_report?.flagged ? 'rgba(239,68,68,0.07)' : s.plagiarism_score > 0 ? 'rgba(245,158,11,0.07)' : 'var(--surface-800)' }}>
                           <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center gap-2">
-                              <AlertTriangle size={14} className={s.plagiarism_report?.flagged ? 'text-red-400' : s.plagiarism_score > 0 ? 'text-yellow-400' : 'text-slate-500'} />
-                              <span className="text-xs uppercase tracking-wider font-semibold text-slate-400">Plagiarism Report</span>
+                              <AlertTriangle size={14} className={s.plagiarism_report?.flagged ? 'text-red-600' : s.plagiarism_score > 0 ? 'text-yellow-600' : 'text-[var(--text-muted)]'} />
+                              <span className="text-xs uppercase tracking-wider font-semibold text-[var(--text-secondary)]">Plagiarism Report</span>
                             </div>
                             <div className={`text-lg font-bold ${
-                              s.plagiarism_report?.flagged ? 'text-red-400' : s.plagiarism_score > 0 ? 'text-yellow-400' : 'text-slate-500'
+                              s.plagiarism_report?.flagged ? 'text-red-600' : s.plagiarism_score > 0 ? 'text-yellow-600' : 'text-[var(--text-muted)]'
                             }`}>
                               {s.plagiarism_score ?? 0}%
-                              <span className="text-xs font-normal ml-1 text-slate-400">similarity</span>
+                              <span className="text-xs font-normal ml-1 text-[var(--text-secondary)]">similarity</span>
                             </div>
                           </div>
 
@@ -287,25 +287,25 @@ export default function AssignmentDetailPage() {
 
                           {s.plagiarism_report?.matches?.length > 0 ? (
                             <div className="space-y-1">
-                              <div className="text-xs text-slate-500 mb-1">Matched submissions:</div>
+                              <div className="text-xs text-[var(--text-muted)] mb-1">Matched submissions:</div>
                               {s.plagiarism_report.matches.map((m: any, i: number) => {
                                 const matchedSub = submissions.find((x: any) => x.student_id === m.student_id)
                                 return (
                                   <div key={i} className="flex items-center justify-between text-xs px-2 py-1 rounded" style={{ background: 'var(--surface-700)' }}>
-                                    <span className="text-slate-300">{matchedSub?.student_name ?? `Student ${m.student_id.slice(0, 8)}`}</span>
-                                    <span className={`font-semibold ${m.similarity > 60 ? 'text-red-400' : 'text-yellow-400'}`}>{m.similarity}% match</span>
+                                    <span className="text-[var(--text-secondary)]">{matchedSub?.student_name ?? `Student ${m.student_id.slice(0, 8)}`}</span>
+                                    <span className={`font-semibold ${m.similarity > 60 ? 'text-red-600' : 'text-yellow-600'}`}>{m.similarity}% match</span>
                                   </div>
                                 )
                               })}
                             </div>
                           ) : (
-                            <p className="text-xs text-slate-500">
+                            <p className="text-xs text-[var(--text-muted)]">
                               {s.plagiarism_score === 0 ? 'No matches found against other submissions.' : 'Below threshold — no flagged matches.'}
                             </p>
                           )}
 
                           {s.plagiarism_report?.flagged && (
-                            <div className="mt-2 text-xs text-red-400 font-medium">
+                            <div className="mt-2 text-xs text-red-600 font-medium">
                               Flagged for high similarity — review before grading.
                             </div>
                           )}
@@ -315,16 +315,16 @@ export default function AssignmentDetailPage() {
                       {/* Attachments */}
                       {s.files?.length > 0 && (
                         <div className="space-y-2">
-                          <div className="text-xs uppercase tracking-wider text-slate-500">Attachments</div>
+                          <div className="text-xs uppercase tracking-wider text-[var(--text-muted)]">Attachments</div>
                           {s.files.map((f: any) => (
                             <a
                               key={f.id}
                               href={f.path}
                               download={f.name}
-                              className="flex items-center gap-2 rounded-lg border border-[var(--border)] px-3 py-2 text-sm text-slate-300 hover:text-white"
+                              className="flex items-center gap-2 rounded-lg border border-[var(--border)] px-3 py-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                               style={{ background: 'var(--surface-800)' }}
                             >
-                              <Download size={14} className="text-indigo-400" />
+                              <Download size={14} className="text-indigo-600" />
                               <span className="truncate">{f.name}</span>
                             </a>
                           ))}
@@ -335,9 +335,9 @@ export default function AssignmentDetailPage() {
 
                   {s.status === 'graded' ? (
                     <div className="mt-3 flex items-center gap-2 text-sm">
-                      <CheckCircle size={14} className="text-green-400" />
-                      <span className="text-green-400 font-semibold">{s.marks_obtained}/{assignment.max_marks}</span>
-                      {s.feedback && <span className="text-slate-400">— {s.feedback}</span>}
+                      <CheckCircle size={14} className="text-green-600" />
+                      <span className="text-green-600 font-semibold">{s.marks_obtained}/{assignment.max_marks}</span>
+                      {s.feedback && <span className="text-[var(--text-secondary)]">— {s.feedback}</span>}
                     </div>
                   ) : (
                     gradingId === s.id ? (
