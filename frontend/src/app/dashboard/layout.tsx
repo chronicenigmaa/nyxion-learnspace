@@ -58,7 +58,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <div className="mb-8 px-2">
         <NyxionLogo size="sm" sub="LearnSpace" />
       </div>
-      <nav className="flex-1 space-y-1">
+      {/* min-h-0 lets this shrink inside the flex column; without it a long nav
+          grows past the viewport and pushes Sign out below the clipped edge. */}
+      <nav className="flex-1 min-h-0 overflow-y-auto space-y-1">
         {visibleNav.map(item => {
           const Icon = item.icon
           const active = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))
