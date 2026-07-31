@@ -217,9 +217,12 @@ def authenticate_with_eduos(email: str, password: str) -> dict | None:
             data = json.loads(res.read().decode("utf-8"))
             return data.get("user")
     except error.HTTPError as exc:
-        if exc.code in (400, 401, 403, 404):
-            return None
-        raise
+        # Any EduOS answer other than a clean "yes" means "not authenticated
+        # here". A 5xx or a schema change on their side must never take down
+        # local sign-in, so nothing is re-raised.
+        if exc.code not in (400, 401, 403, 404):
+            log_event("warning", "auth.eduos_error", detail_status=exc.code)
+        return None
     except (error.URLError, TimeoutError, json.JSONDecodeError):
         return None
 
