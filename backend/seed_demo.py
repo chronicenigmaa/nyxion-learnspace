@@ -80,7 +80,25 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Seed the LearnSpace demo.")
     parser.add_argument("--wipe", action="store_true",
                         help="DELETE ALL existing data first. Irreversible.")
+    parser.add_argument("--allow-public-schema", action="store_true",
+                        help="Permit seeding into the 'public' schema. Almost always wrong.")
     args = parser.parse_args()
+
+    print(f"Target schema: {DB_SCHEMA}")
+
+    # Seeding into "public" writes where the deployed app never looks, since it
+    # runs with DB_SCHEMA=learnspace. The script would report success while
+    # every login still failed.
+    if DB_SCHEMA == "public" and not args.allow_public_schema:
+        print(
+            "\nRefusing to run against the 'public' schema.\n"
+            "LearnSpace runs with DB_SCHEMA=learnspace, so anything seeded into "
+            "'public' is invisible to the app.\n\n"
+            "  DATABASE_URL=... DB_SCHEMA=learnspace python seed_demo.py --wipe\n\n"
+            "Pass --allow-public-schema only if you genuinely mean 'public'.",
+            file=sys.stderr,
+        )
+        return 1
 
     ensure_schema(engine)
     Base.metadata.create_all(bind=engine)
